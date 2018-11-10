@@ -43,6 +43,13 @@ struct dla_sdp_params
     void * weight_data; //data format is float
 };
 
+struct dla_cdp_params
+{
+    int region_type;
+    int local_size;
+    int alpha;
+    int beta;
+};
 
 struct dla_pdp_params
 {
@@ -69,6 +76,7 @@ union dla_layer_param_container {
     struct dla_nv_conv_params nv_conv_params;
     struct dla_pdp_params pdp_params;
     struct dla_sdp_params sdp_params;
+    struct dla_cdp_params cdp_params;
     struct dla_nv_softmax_params nv_softmax_params;
 };
 

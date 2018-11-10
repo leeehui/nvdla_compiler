@@ -3,6 +3,9 @@
 {"Convolution",Convolution_layer_creator},
 #endif
 #if NCNN_STRING
+{"ConvolutionDepthWise",ConvolutionDepthWise_layer_creator},
+#endif
+#if NCNN_STRING
 {"Input",Input_layer_creator},
 #endif
 #if NCNN_STRING
@@ -10,6 +13,9 @@
 #endif
 #if NCNN_STRING
 {"ReLU",ReLU_layer_creator},
+#endif
+#if NCNN_STRING
+{"Lrn",Lrn_layer_creator},
 #endif
 #if NCNN_STRING
 {"InnerProduct",InnerProduct_layer_creator},
