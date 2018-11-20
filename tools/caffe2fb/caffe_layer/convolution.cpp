@@ -79,6 +79,13 @@ int Convolution::load_model(const ModelBin& mb)
 
 int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
 {   
+    //here we should decide the Working mode of conv
+    //1. Full input & Full weight
+    //2. Full input & Partial weight
+    //3. Split
+    //3.1. Partial input & Full weight
+    //3.2. Partial input & Partial weight
+    
     Layer * layer = create_layer("NvdlaConv");
     std::vector <int> paras;
     paras.push_back(num_output);

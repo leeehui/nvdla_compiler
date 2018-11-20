@@ -46,6 +46,9 @@ NVDLA_SRC_FILES := \
 	caffe_layer/input.cpp \
 	caffe_layer/relu.cpp \
 	caffe_layer/lrn.cpp \
+	caffe_layer/batchNorm.cpp \
+	caffe_layer/scale.cpp \
+	caffe_layer/eltWise.cpp \
     caffe_layer/softmax.cpp \
     caffe_layer/innerproduct.cpp \
     caffe_layer/pooling.cpp \

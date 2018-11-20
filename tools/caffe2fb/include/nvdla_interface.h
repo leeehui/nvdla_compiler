@@ -5,14 +5,27 @@
 
 //some configure for nvdla large 
 #define ATOMIC_C_SIZE   128 //for half-float and weight data for conv direct mode
+
+//used in symbol_list_parser
 #define GROUP_KERNEL_NUM   16 //for half-float
 
 
 
 
 
+
 #define STRUCTS_PER_TASK 6
-enum dla_action{ ACTION_NONE = 0, SDP_ACTION_ADD_BIAS = 1, SDP_ACTION_RELU = 2,};    
+
+enum dla_action 
+{ 
+    ACTION_NONE = 0, //do nothing means Conv just use SDP's WDMA engine for wrighting the result to mem
+    SDP_ACTION_ADD_BIAS = 1, 
+    SDP_ACTION_RELU = 2,
+    SDP_ACTION_BATCHNORM = 3,
+    SDP_ACTION_SCALE = 4,
+    SDP_ACTION_ELTWISE = 5
+};    
+
 struct dla_nv_conv_params
 {
     // param

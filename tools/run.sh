@@ -1,7 +1,7 @@
 script_dir=`pwd`
 cd caffe2fb
 make clean
-bare make
+make
 work_dir="../../umd/out/runtime/caffe2fb"
 cd $work_dir
 cp $script_dir/lenet.param ./

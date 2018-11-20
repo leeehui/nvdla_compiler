@@ -136,6 +136,9 @@ union dla_operation_container NvdlaConv::fill_dla_op_des(void)
     hard_patch_index++;
     memset(&dla_op_desc, 0, sizeof(union dla_operation_container));
     dla_op_desc.conv_op.conv_mode = conv_mode;
+    //dla_op_desc.conv_op.data_reuse = 0;
+    //dla_op_desc.conv_op.waight_reuse = 0;
+    //dla_op_desc.conv_op.skip_data_rls =
     dla_op_desc.conv_op.skip_weight_rls = hard_patchs[hard_patch_index - 1].skip_weight_rls;
     dla_op_desc.conv_op.entry_per_slice = hard_patchs[hard_patch_index - 1].entry_per_slice;
     dla_op_desc.conv_op.data_format = FORMAT_FEATURE;
@@ -144,6 +147,9 @@ union dla_operation_container NvdlaConv::fill_dla_op_des(void)
     dla_op_desc.conv_op.weight_format = WEIGHT_FORMAT_UNCOMPRESSED;
     dla_op_desc.conv_op.data_bank = 1;
     dla_op_desc.conv_op.weight_bank = hard_patchs[hard_patch_index - 1].weight_bank;
+    //dla_op_desc.conv_op.batch_stride = 
+    //dla_op_desc.conv_op.post_extension = 
+    //dla_op_desc.conv_op.pixel_override = 
     dla_op_desc.conv_op.release = surface_desc.src_data.width; // ??
     dla_op_desc.conv_op.input_width_csc = surface_desc.src_data.width;
     dla_op_desc.conv_op.input_height_csc = surface_desc.src_data.height;
@@ -154,14 +160,20 @@ union dla_operation_container NvdlaConv::fill_dla_op_des(void)
     dla_op_desc.conv_op.input_width_cmac = surface_desc.dst_data.width;
     dla_op_desc.conv_op.input_height_cmac = surface_desc.dst_data.height;
     dla_op_desc.conv_op.bytes_per_kernel = weight_data_size * get_bpe() / num_output;
+    //dla_op_desc.conv_op.mean_ry = 
+    //dla_op_desc.conv_op.mean_gu = 
+    //dla_op_desc.conv_op.mean_bv = 
+    //dla_op_desc.conv_op.mean_ax = 
+    //dla_op_desc.conv_op.mean_format = 
     dla_op_desc.conv_op.conv_stride_x = stride_w;
     dla_op_desc.conv_op.conv_stride_y = stride_h;
-    dla_op_desc.conv_op.dilation_x = dilation_w;
-    dla_op_desc.conv_op.dilation_y = dilation_h;
     dla_op_desc.conv_op.pad_x_left = pad_w;
     dla_op_desc.conv_op.pad_x_right = pad_w;
     dla_op_desc.conv_op.pad_y_bottom = pad_h;
     dla_op_desc.conv_op.pad_y_top = pad_h;
+    dla_op_desc.conv_op.dilation_x = dilation_w;
+    dla_op_desc.conv_op.dilation_y = dilation_h;
+    //dla_op_desc.conv_op.pra_truncate = 
     dla_op_desc.conv_op.in_precision = PRECISION_FP16;//hafl_float
     dla_op_desc.conv_op.out_precision = PRECISION_FP16;
     dla_op_desc.conv_op.out_cvt.scale = 1;//??
