@@ -49,6 +49,8 @@ NVDLA_SRC_FILES := \
 	caffe_layer/batchNorm.cpp \
 	caffe_layer/scale.cpp \
 	caffe_layer/eltWise.cpp \
+	caffe_layer/dropout.cpp \
+	caffe_layer/split.cpp \
     caffe_layer/softmax.cpp \
     caffe_layer/innerproduct.cpp \
     caffe_layer/pooling.cpp \
@@ -81,6 +83,7 @@ INCLUDES += \
     -I$(ROOT)/external/libjpeg-turbo \
     -I$(LOCAL_DIR)/include \
     -I$(LOCAL_DIR)/nvdla_layer \
+    -I$(LOCAL_DIR)/caffe_layer \
     -I$(LOCAL_DIR)
 
 MODULE_CPPFLAGS += -DNVDLA_UTILS_ERROR_TAG="\"DLA_TEST\""

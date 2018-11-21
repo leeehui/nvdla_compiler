@@ -137,7 +137,6 @@ int Net::load_param(FILE* fp)
 
         layer->type = std::string(layer_type);
         layer->name = std::string(layer_name);
-//         fprintf(stderr, "new layer %d %s\n", i, layer_name);
 
         layer->bottoms.resize(bottom_count);
 
@@ -158,7 +157,6 @@ int Net::load_param(FILE* fp)
                 bottom_blob_index = blob_index;
 
                 blob.name = std::string(bottom_name);
-//                 fprintf(stderr, "new blob %s\n", bottom_name);
 
                 blob_index++;
             }

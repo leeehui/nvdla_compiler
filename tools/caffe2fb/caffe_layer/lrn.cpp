@@ -6,18 +6,26 @@
 
 namespace nvdla {
 
-DEFINE_LAYER_CREATOR(Lrn)
+DEFINE_LAYER_CREATOR(LRN)
 
-Lrn::Lrn()
+LRN::LRN()
 {
 }
 
-Lrn::~Lrn()
+LRN::~LRN()
 {
 }
 
 
-int Lrn::load_param(const ParamDict& pd)
+void LRN::calc_output_params(Layer *bottom_layer)
+{
+    int bottom_output_w = bottom_layer->get_output_w();
+    int bottom_output_h = bottom_layer->get_output_h();
+    set_output_w(bottom_output_w);
+    set_output_h(bottom_output_h);
+}
+
+int LRN::load_param(const ParamDict& pd)
 {
     region_type = pd.get(0, 0);
     local_size = pd.get(1, 5);
@@ -25,14 +33,17 @@ int Lrn::load_param(const ParamDict& pd)
     beta = pd.get(3, 0.75f);
 
     static int index=0;
-    debug_info("lrn index=%d para....................\n",index++);
-    debug_info("region_type=%d,local_size=%d,alpha=%f,beta=%f \n", \
-				region_type,local_size,alpha,beta);
+    debug_info("LRN index=%d parameters:\n",index++);
+    debug_info("\t region_type=%d\n", region_type);
+    debug_info("\t local_size=%d\n", local_size);
+    debug_info("\t alpha=%f\n", alpha);
+    debug_info("\t beta=%f\n", beta);
+    debug_info("***************************************\n");
 
     return 0;
 }
 
-int Lrn::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
+int LRN::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
 {   
     Layer * layer = create_layer("NvdlaCDP");
     std::vector <int> paras;
@@ -47,7 +58,7 @@ int Lrn::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
         return -1;
     }
 
-    //inside this function, NCNN Lrn layer specific paramers are converted
+    //inside this function, NCNN LRN layer specific paramers are converted
     //to NVDLA Conv descriptor data members
     layer->fill_params(paras);
     

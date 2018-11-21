@@ -30,6 +30,13 @@ InnerProduct::~InnerProduct()
 {
 }
 
+void InnerProduct::calc_output_params(Layer *bottom_layer) 
+{
+    // full connect layer
+    set_output_w(1);
+    set_output_h(1);
+}
+
 int InnerProduct::load_param(const ParamDict& pd)
 {
     num_output = pd.get(0, 0);
@@ -39,9 +46,13 @@ int InnerProduct::load_param(const ParamDict& pd)
 
     use_int8_inference = pd.use_int8_inference;
 
-    static int index = 0;
-    debug_info("InnerProduct index=%d para....\n",index++);
-    debug_info("num_output=%d,bias_term=%d,weight_data_size=%d\n",num_output,bias_term,weight_data_size);
+    static int index=0;
+    debug_info("InnerProduct index=%d parameters:\n",index++);
+    debug_info("\t num_output=%d\n", num_output);
+    debug_info("\t bias_term=%d\n", bias_term);
+    debug_info("\t weight_data_size=%d\n", weight_data_size);
+    debug_info("\t int8_scale_term=%d\n", int8_scale_term);
+    debug_info("***************************************\n");
     if (int8_scale_term == 0)
         use_int8_inference = false;
 

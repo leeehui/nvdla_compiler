@@ -49,6 +49,7 @@ Mat ModelBinFromStdio::load(int w, int type) const
     if (!binfp)
         return Mat();
 
+    //auto data type
     if (type == 0)
     {
         int nread;
@@ -65,6 +66,7 @@ Mat ModelBinFromStdio::load(int w, int type) const
             unsigned int tag;
         } flag_struct;
 
+        //read flag
         nread = fread(&flag_struct, sizeof(flag_struct), 1, binfp);
         if (nread != 1)
         {

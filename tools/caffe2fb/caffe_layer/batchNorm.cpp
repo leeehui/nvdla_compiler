@@ -25,12 +25,21 @@ BatchNorm::BatchNorm()
 {
 }
 
+void BatchNorm::calc_output_params(Layer *bottom_layer)
+{
+    int bottom_output_w = bottom_layer->get_output_w();
+    int bottom_output_h = bottom_layer->get_output_h();
+    set_output_w(bottom_output_w);
+    set_output_h(bottom_output_h);
+}
+
 int BatchNorm::load_param(const ParamDict& pd)
 {
     channels = pd.get(0, 0);
-//    static int index = 0;
-//    debug_info("Relu index=%d para......\n",index++);
-//    debug_info("slop=%f\n",slope);
+    static int index=0;
+    debug_info("BatchNorm index=%d parameters:\n",index++);
+    debug_info("\t channels=%d\n", channels);
+    debug_info("***************************************\n");
     return 0;
 }
 

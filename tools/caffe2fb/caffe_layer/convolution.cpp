@@ -16,6 +16,21 @@ Convolution::~Convolution()
 {
 }
 
+void Convolution::calc_output_params(Layer *bottom_layer) 
+{
+    int S = (kernel_w - 1) / dilation_w + 1;    
+    int R = (kernel_h - 1) / dilation_h + 1;    
+    int bottom_output_w = bottom_layer->get_output_w();
+    int bottom_output_h = bottom_layer->get_output_h();
+    int output_w, output_h;
+
+    output_w = (bottom_output_w + pad_w * 2 - S) / stride_w + 1;
+    output_h = (bottom_output_h + pad_h * 2 - R) / stride_h + 1;
+    
+    set_output_w(output_w);
+    set_output_h(output_h);
+}
+
 
 int Convolution::load_param(const ParamDict& pd)
 {
@@ -34,11 +49,20 @@ int Convolution::load_param(const ParamDict& pd)
     use_int8_inference = pd.use_int8_inference;
 
     static int index=0;
-    debug_info("convolution index=%d para....................\n",index++);
-    debug_info("num_output=%d,kernel_w=%d,kernel_h=%d,dilation_w=%d,dilation_h=%d,stride_w=%d,\
-				stride_h=%d,pad_w=%d,pad_h=%d,bias_term=%d,weight_data_size=%d,int8_scale_term=%d \n", \
-				num_output,kernel_w,kernel_h,dilation_w,dilation_h,stride_w,stride_h,pad_w,pad_h, \
-				bias_term,weight_data_size,int8_scale_term);
+    debug_info("Convolution index=%d parameters:\n",index++);
+    debug_info("\t num_output=%d\n", num_output);
+    debug_info("\t kernel_w=%d\n", kernel_w);
+    debug_info("\t kernel_h=%d\n", kernel_h);
+    debug_info("\t dilation_w=%d\n", dilation_w);
+    debug_info("\t dilation_h=%d\n", dilation_h);
+    debug_info("\t stride_w=%d\n", stride_w);
+    debug_info("\t stride_h=%d\n", stride_h);
+    debug_info("\t pad_w=%d\n", pad_w);
+    debug_info("\t pad_h=%d\n", pad_h);
+    debug_info("\t bias_term=%d\n", bias_term);
+    debug_info("\t weight_data_size=%d\n", weight_data_size);
+    debug_info("\t int8_scale_term=%d\n", int8_scale_term);
+    debug_info("***************************************\n");
 
     if (int8_scale_term == 0)
         use_int8_inference = false;

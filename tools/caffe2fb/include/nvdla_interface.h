@@ -2,6 +2,12 @@
 #define DLA_INTERFACE_H
 
 
+#define NVDLA_CBUF_BANK_NUM 16
+#define NVDLA_CBUF_ENTRYF_PER_BANK 256
+#define NVDLA_CBUF_ENTRY_SIZE 128
+#define NVDLA_CBUF_BANK_SIZE (NVDLA_CBUF_ENTRYF_PER_BANK * NVDLA_CBUF_ENTRY_SIZE)
+
+
 
 //some configure for nvdla large 
 #define ATOMIC_C_SIZE   128 //for half-float and weight data for conv direct mode

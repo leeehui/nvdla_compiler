@@ -25,6 +25,19 @@ Pooling::Pooling()
 {
 }
 
+void Pooling::calc_output_params(Layer *bottom_layer) 
+{
+    int bottom_output_w = bottom_layer->get_output_w();
+    int bottom_output_h = bottom_layer->get_output_h();
+    int output_w, output_h;
+
+    output_w = (bottom_output_w + pad_left + pad_right) / stride_w + 1;
+    output_h = (bottom_output_h + pad_top + pad_bottom) / stride_h + 1;
+    
+    set_output_w(output_w);
+    set_output_h(output_h);
+}
+
 int Pooling::load_param(const ParamDict& pd)
 {
     pooling_type = pd.get(0, 0);
@@ -38,11 +51,21 @@ int Pooling::load_param(const ParamDict& pd)
     pad_bottom = pd.get(15, pad_top);
     global_pooling = pd.get(4, 0);
     pad_mode = pd.get(5, 0);
-    static int index = 0;
-    debug_info("Pooling index=%d para.............\n",index++);
-    debug_info("pooling_type=%d,kernel_w=%d,kernel_h=%d,stride_w=%d,stride_h=%d,pad_left=%d,pad_right=%d, \
-        pad_top=%d,pad_bottom=%d,global_pooling=%d,pad_mode=%d...\n",pooling_type,kernel_w,kernel_h,stride_w,\
-        stride_h,pad_left,pad_right,pad_top,pad_bottom,global_pooling,pad_mode);
+
+    static int index=0;
+    debug_info("Pooling index=%d parameters:\n",index++);
+    debug_info("\t kernel_w=%d\n", kernel_w);
+    debug_info("\t kernel_h=%d\n", kernel_h);
+    debug_info("\t stride_w=%d\n", stride_w);
+    debug_info("\t stride_h=%d\n", stride_h);
+    debug_info("\t pad_left=%d\n", pad_left);
+    debug_info("\t pad_right=%d\n", pad_right);
+    debug_info("\t pad_top=%d\n", pad_top);
+    debug_info("\t pad_bottom=%d\n", pad_bottom);
+    debug_info("\t global_pooling=%d\n", global_pooling);
+    debug_info("\t pad_mode=%d\n", pad_mode);
+    debug_info("***************************************\n");
+
     return 0;
 }
 

@@ -27,6 +27,10 @@ int Layer::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
     return 0;
 }
 
+void Layer::calc_output_params(Layer *bottom_layer)
+{
+    return;
+}
 void Layer::fill_params(std::vector<int> params)
 {
 }
@@ -64,6 +68,26 @@ void Layer::set_bpe(int bpe_p)
     bpe = bpe_p;
 }
 
+void Layer::set_output_w(int output_w_p)
+{
+    output_w  = output_w_p;
+}
+
+int Layer::get_output_w(void)
+{
+    return output_w;
+}
+
+void Layer::set_output_h(int output_h_p)
+{
+    output_h  = output_h_p;
+}
+
+int Layer::get_output_h(void)
+{
+    return output_h;
+
+}
 
 union dla_surface_container Layer::fill_dla_surface_des(void)
 {

@@ -7,11 +7,11 @@
 
 namespace nvdla {
 
-class Lrn : public Layer
+class LRN : public Layer
 {
 public:
-    Lrn();
-    ~Lrn();
+    LRN();
+    ~LRN();
 
     virtual int load_param(const ParamDict& pd);
 
@@ -19,6 +19,7 @@ public:
 
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
 
+    virtual void calc_output_params(Layer *bottom_layer);
 
 public:
     // param

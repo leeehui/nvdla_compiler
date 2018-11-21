@@ -19,6 +19,7 @@ public:
 
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
 
+    virtual void calc_output_params(Layer *bottom_layer);
 
 public:
     // param
@@ -37,6 +38,7 @@ public:
     int weight_data_size;
 
     int int8_scale_term;
+
 
     // model
     Mat weight_data;

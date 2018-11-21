@@ -12,18 +12,18 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-#ifndef LAYER_SCALE_H
-#define LAYER_SCALE_H
+#ifndef LAYER_DROPOUT_H
+#define LAYER_DROPOUT_H
 
 #include "layer.h"
 #include <vector>
 
 namespace nvdla {
 
-class Scale : public Layer
+class Dropout : public Layer
 {
 public:
-    Scale();
+    Dropout();
 
     virtual int load_param(const ParamDict& pd);
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
@@ -32,13 +32,8 @@ public:
    // virtual int forward_inplace(Mat& bottom_top_blob, const Option& opt) const;
 
 public:
-    int scale_data_size;
-    int bias_term;
-
-    Mat scale_data;
-    Mat bias_data;
 };
 
 } // namespace ncnn
 
-#endif // LAYER_SCALE_H
+#endif // LAYER_DROPOUT_H

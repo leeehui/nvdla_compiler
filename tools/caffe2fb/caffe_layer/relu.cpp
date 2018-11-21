@@ -25,12 +25,21 @@ ReLU::ReLU()
 {
 }
 
+void ReLU::calc_output_params(Layer *bottom_layer)
+{
+    int bottom_output_w = bottom_layer->get_output_w();
+    int bottom_output_h = bottom_layer->get_output_h();
+    set_output_w(bottom_output_w);
+    set_output_h(bottom_output_h);
+}
+
 int ReLU::load_param(const ParamDict& pd)
 {
     slope = pd.get(0, 0.f);
-    static int index = 0;
-    debug_info("Relu index=%d para......\n",index++);
-    debug_info("slop=%f\n",slope);
+    static int index=0;
+    debug_info("ReLU index=%d parameters:\n",index++);
+    debug_info("\t slope=%d\n", slope);
+    debug_info("***************************************\n");
     return 0;
 }
 

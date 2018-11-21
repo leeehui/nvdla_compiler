@@ -5,6 +5,7 @@
 #include "layer.h"
 #include <vector>
 
+
 namespace nvdla {
 
 class Convolution : public Layer
@@ -19,6 +20,7 @@ public:
 
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
 
+    virtual void calc_output_params(Layer *bottom_layer);
 
 public:
     // param
@@ -32,10 +34,13 @@ public:
     int pad_w;
     int pad_h;
     int bias_term;
-
     int weight_data_size;
-
     int int8_scale_term;
+
+    // initialized after loading params
+    int output_w;
+    int output_h;
+
 
     // model
     Mat weight_data;

@@ -79,6 +79,7 @@ public:
     // return 0 if success
     virtual int load_model(const ModelBin& mb);
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
+    virtual void calc_output_params(Layer *bottom_layer);
     virtual void fill_params(std::vector<int> params);
     virtual union dla_layer_param_container get_params(void);
     virtual void set_weight_data(Mat weight_data);
@@ -89,6 +90,11 @@ public:
     virtual union dla_operation_container fill_dla_op_des(void);
     int get_bpe(void);
     void set_bpe(int bpe_p);
+    void set_output_w(int output_w_p);
+    void set_output_h(int output_h_p);
+    int get_output_w(void);
+    int get_output_h(void);
+
     public:
 		// one input and one output blob
 		bool one_blob_only;
@@ -129,6 +135,10 @@ public:
     struct dla_surface_desc surface_desc;
 private:
     int bpe; //now nvdla data precision is float16, so defaultly set bpe 2
+    
+    // initialized after loading params
+    int output_w;
+    int output_h;
 };
 
 

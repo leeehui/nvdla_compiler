@@ -25,13 +25,24 @@ Scale::Scale()
 {
 }
 
+void Scale::calc_output_params(Layer *bottom_layer)
+{
+    int bottom_output_w = bottom_layer->get_output_w();
+    int bottom_output_h = bottom_layer->get_output_h();
+    set_output_w(bottom_output_w);
+    set_output_h(bottom_output_h);
+}
+
 int Scale::load_param(const ParamDict& pd)
 {
     scale_data_size = pd.get(0, 0);
     bias_term = pd.get(0, 0);
-    //static int index = 0;
-    //debug_info("Relu index=%d para......\n",index++);
-   //debug_info("slop=%f\n",slope);
+
+    static int index=0;
+    debug_info("Scale index=%d parameters:\n",index++);
+    debug_info("\t scale_data_size=%d\n", scale_data_size);
+    debug_info("\t bias_term=%d\n", bias_term);
+    debug_info("***************************************\n");
     return 0;
 }
 

@@ -1,5 +1,6 @@
 #include "net_parser.h"
 #include "debug.h"
+#include "caffe_layer/input.h"
 
 namespace nvdla{
 
@@ -20,6 +21,57 @@ void NetParser::load_caffe_net(const char * protopath,const char * modelpath)
 
 }
 
+void NetParser::build_output_params(void)
+{
+    Layer *bottom_layer;
+    std::vector<Layer*>::iterator layer_it;
+    std::vector<int>::iterator int_it;
+    Layer * layer;
+    int blob_index;
+    for(layer_it = caffe_net.layers.begin(); layer_it != caffe_net.layers.end(); layer_it++)
+    {
+        layer = *layer_it;
+
+        for (int_it = layer->bottoms.begin(); int_it != layer->bottoms.end(); int_it++)
+        {
+            blob_index = *int_it;
+            bottom_layer = find_layer_by_top_index(blob_index);
+            if (bottom_layer != NULL)
+            {
+                break;
+            }
+        }
+        
+        if (bottom_layer != NULL)
+        {
+            layer->calc_output_params(bottom_layer);
+        }
+    }
+}
+
+
+Layer *NetParser::find_layer_by_top_index(int  top_index)
+{
+    std::vector<Layer*>::iterator layer_it;
+    std::vector<int>::iterator int_it;
+    Layer * layer;
+    int blob_index;
+    for(layer_it = caffe_net.layers.begin(); layer_it != caffe_net.layers.end(); layer_it++)
+    {
+        layer = *layer_it;
+
+        for (int_it = layer->tops.begin(); int_it != layer->tops.end(); int_it++)
+        {
+            blob_index = *int_it;
+            if (blob_index == top_index)
+            {
+                return layer;
+            }
+        }
+    }
+
+    return NULL;
+}
 void NetParser::build_nvdla_net(void)
 {
     std::vector<Layer*>::iterator it;

@@ -25,13 +25,24 @@ EltWise::EltWise()
 {
 }
 
+void EltWise::calc_output_params(Layer *bottom_layer)
+{
+    int bottom_output_w = bottom_layer->get_output_w();
+    int bottom_output_h = bottom_layer->get_output_h();
+    set_output_w(bottom_output_w);
+    set_output_h(bottom_output_h);
+}
+
+
 int EltWise::load_param(const ParamDict& pd)
 {
     op_type = pd.get(0, 0);
     coeffs = pd.get(1, Mat());
-    //static int index = 0;
-    //debug_info("Relu index=%d para......\n",index++);
-    //debug_info("slop=%f\n",slope);
+    static int index=0;
+    debug_info("EltWise index=%d parameters:\n",index++);
+    debug_info("\t op_type=%d\n", op_type);
+    //debug_info("\t op_type=%d\n", op_type);
+    debug_info("***************************************\n");
     return 0;
 }
 

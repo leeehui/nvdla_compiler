@@ -13,6 +13,7 @@
 // specific language governing permissions and limitations under the License.
 
 #include "input.h"
+#include "debug.h"
 
 namespace nvdla {
 
@@ -22,12 +23,24 @@ Input::Input()
 {
 }
 
+void Input::calc_output_params(Layer *bottom_layer)
+{
+    set_output_w(w);
+    set_output_h(h);
+}
+
 int Input::load_param(const ParamDict& pd)
 {
     w = pd.get(0, 0);
     h = pd.get(1, 0);
     c = pd.get(2, 0);
 
+    static int index=0;
+    debug_info("Input index=%d parameters:\n",index++);
+    debug_info("\t w=%d\n", w);
+    debug_info("\t h=%d\n", h);
+    debug_info("\t c=%d\n", c);
+    debug_info("***************************************\n");
     return 0;
 }
 

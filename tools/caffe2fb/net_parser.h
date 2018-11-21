@@ -17,7 +17,9 @@ public:
     NetParser();
     ~NetParser();
     void load_caffe_net(const char * protopath,const char * modelpath);
+    void build_output_params(void);
     void build_nvdla_net(void);
+    Layer *find_layer_by_top_index(int  top_index);
 
     const std::vector<Layer*>& getLayers() const {
     	return nvdla_layers;

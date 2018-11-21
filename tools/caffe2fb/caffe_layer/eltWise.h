@@ -28,6 +28,7 @@ public:
     virtual int load_param(const ParamDict& pd);
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
 
+    virtual void calc_output_params(Layer *bottom_layer);
    // virtual int forward_inplace(Mat& bottom_top_blob, const Option& opt) const;
 
 public:
@@ -37,4 +38,4 @@ public:
 
 } // namespace ncnn
 
-#endif // LAYER_RELU_H
+#endif // LAYER_ELTWISE_H
