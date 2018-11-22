@@ -29,8 +29,19 @@ void BatchNorm::calc_output_params(Layer *bottom_layer)
 {
     int bottom_output_w = bottom_layer->get_output_w();
     int bottom_output_h = bottom_layer->get_output_h();
+    set_input_w(bottom_output_w);
+    set_input_h(bottom_output_h);
     set_output_w(bottom_output_w);
     set_output_h(bottom_output_h);
+    static int index=0;
+    debug_info("BatchNorm index=%d \n",index++);
+    debug_info("\t input_w=%d\n", get_input_w());
+    debug_info("\t input_h=%d\n", get_input_h());
+    debug_info("\t input_c=%d\n", get_input_c());
+    debug_info("\t output_w=%d\n", get_output_w());
+    debug_info("\t output_h=%d\n", get_output_h());
+    debug_info("\t output_c=%d\n", get_output_c());
+    debug_info("***************************************\n");
 }
 
 int BatchNorm::load_param(const ParamDict& pd)

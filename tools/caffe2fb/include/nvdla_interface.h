@@ -3,11 +3,23 @@
 
 
 #define NVDLA_CBUF_BANK_NUM 16
-#define NVDLA_CBUF_ENTRYF_PER_BANK 256
+#define NVDLA_CBUF_ENTRY_PER_BANK 256
 #define NVDLA_CBUF_ENTRY_SIZE 128
-#define NVDLA_CBUF_BANK_SIZE (NVDLA_CBUF_ENTRYF_PER_BANK * NVDLA_CBUF_ENTRY_SIZE)
+#define NVDLA_CBUF_BANK_SIZE (NVDLA_CBUF_ENTRY_PER_BANK * NVDLA_CBUF_ENTRY_SIZE)
 
+#define NVDLA_MAC_CELL_NUM 16
+#define NVDLA_ENTRY_PER_MAC_CELL 64
 
+#define NVDLA_FEATURE_DATA_ALIGN  32
+#define NVDLA_KERNEL_ALIGN  128
+
+enum conv_split_mode
+{
+    CONV_SPLIT_NONE = 0,
+    CONV_SPLIT_FEATURE,
+    CONV_SPLIT_WEIGHT,
+    CONV_SPLIT_ALL
+};
 
 //some configure for nvdla large 
 #define ATOMIC_C_SIZE   128 //for half-float and weight data for conv direct mode

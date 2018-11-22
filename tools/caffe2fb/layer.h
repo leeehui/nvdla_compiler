@@ -92,8 +92,22 @@ public:
     void set_bpe(int bpe_p);
     void set_output_w(int output_w_p);
     void set_output_h(int output_h_p);
+    void set_output_c(int output_c_p);
     int get_output_w(void);
     int get_output_h(void);
+    int get_output_c(void);
+    void set_input_w(int output_w_p);
+    void set_input_h(int output_h_p);
+    void set_input_c(int output_c_p);
+    int get_input_w(void);
+    int get_input_h(void);
+    int get_input_c(void);
+
+    void set_is_first_conv(bool val);
+    bool get_is_first_conv(void);
+
+    void set_is_input(bool val);
+    bool get_is_input(void);
 
     public:
 		// one input and one output blob
@@ -139,6 +153,13 @@ private:
     // initialized after loading params
     int output_w;
     int output_h;
+    int output_c;
+    int input_w;
+    int input_h;
+    int input_c;
+
+    bool is_first_conv = false;
+    bool is_input = false;
 };
 
 

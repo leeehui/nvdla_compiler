@@ -89,6 +89,65 @@ int Layer::get_output_h(void)
 
 }
 
+void Layer::set_output_c(int output_c_p)
+{
+    output_c  = output_c_p;
+}
+
+int Layer::get_output_c(void)
+{
+    return output_c;
+
+}
+void Layer::set_input_w(int input_w_p)
+{
+    input_w  = input_w_p;
+}
+
+int Layer::get_input_w(void)
+{
+    return input_w;
+}
+
+void Layer::set_input_h(int input_h_p)
+{
+    input_h  = input_h_p;
+}
+
+int Layer::get_input_h(void)
+{
+    return input_h;
+}
+
+void Layer::set_input_c(int input_c_p)
+{
+    input_c  = input_c_p;
+}
+
+int Layer::get_input_c(void)
+{
+    return input_c;
+}
+
+void Layer::set_is_first_conv(bool val)
+{
+    is_first_conv = val;
+}
+
+bool Layer::get_is_first_conv(void)
+{
+    return is_first_conv;
+}
+
+void Layer::set_is_input(bool val)
+{
+    is_input = val;
+}
+bool Layer::get_is_input(void)
+{
+    return is_input;
+}
+
 union dla_surface_container Layer::fill_dla_surface_des(void)
 {
     union dla_surface_container dla_surface_des;

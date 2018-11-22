@@ -25,8 +25,25 @@ Input::Input()
 
 void Input::calc_output_params(Layer *bottom_layer)
 {
+    set_input_w(w);
+    set_input_h(h);
+    set_input_c(c);
     set_output_w(w);
     set_output_h(h);
+    set_output_c(c);
+    if (!get_is_input())
+    {
+        set_is_input(true);
+    }
+    static int index=0;
+    debug_info("Input index=%d \n",index++);
+    debug_info("\t input_w=%d\n", get_input_w());
+    debug_info("\t input_h=%d\n", get_input_h());
+    debug_info("\t input_c=%d\n", get_input_c());
+    debug_info("\t output_w=%d\n", get_output_w());
+    debug_info("\t output_h=%d\n", get_output_h());
+    debug_info("\t output_c=%d\n", get_output_c());
+    debug_info("***************************************\n");
 }
 
 int Input::load_param(const ParamDict& pd)

@@ -17,6 +17,9 @@ void NetParser::load_caffe_net(const char * protopath,const char * modelpath)
 {
 
     caffe_net.load_param(protopath);
+
+    build_output_params(); 
+
     caffe_net.load_model(modelpath);
 
 }
@@ -28,10 +31,13 @@ void NetParser::build_output_params(void)
     std::vector<int>::iterator int_it;
     Layer * layer;
     int blob_index;
+
+    // traverse every layer, find its "input(bottom)" layer, then calculate current output_w and output_h
     for(layer_it = caffe_net.layers.begin(); layer_it != caffe_net.layers.end(); layer_it++)
     {
         layer = *layer_it;
 
+        // one layer may have multiple bottoms (such as EltWise)
         for (int_it = layer->bottoms.begin(); int_it != layer->bottoms.end(); int_it++)
         {
             blob_index = *int_it;
@@ -46,6 +52,10 @@ void NetParser::build_output_params(void)
         {
             layer->calc_output_params(bottom_layer);
         }
+        else
+        {
+            debug_info("ERROR: cannot find input layers of current layer %s\n", layer->name.c_str());
+        }
     }
 }
 
@@ -56,10 +66,20 @@ Layer *NetParser::find_layer_by_top_index(int  top_index)
     std::vector<int>::iterator int_it;
     Layer * layer;
     int blob_index;
+
+    // there is NOT a layer that has top == 0
+    // here we assume only Input layer has bottom == 0, So, just return Input layer
+    if (0 == top_index)
+    {
+        return caffe_net.layers[0];
+    }
+
+    // search layers that has matched top_index
     for(layer_it = caffe_net.layers.begin(); layer_it != caffe_net.layers.end(); layer_it++)
     {
         layer = *layer_it;
 
+        // one layer may have more than one top (such as Split) 
         for (int_it = layer->tops.begin(); int_it != layer->tops.end(); int_it++)
         {
             blob_index = *int_it;

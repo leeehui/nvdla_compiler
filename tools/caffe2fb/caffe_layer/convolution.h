@@ -21,6 +21,7 @@ public:
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
 
     virtual void calc_output_params(Layer *bottom_layer);
+    virtual int calc_line_num_per_split(int left_bank_num, int line_stride_size);
 
 public:
     // param

@@ -22,13 +22,28 @@ void ConvolutionDepthWise::calc_output_params(Layer *bottom_layer)
     int R = (kernel_h - 1) / dilation_h + 1;    
     int bottom_output_w = bottom_layer->get_output_w();
     int bottom_output_h = bottom_layer->get_output_h();
+    int bottom_output_c = bottom_layer->get_output_c();
     int output_w, output_h;
+
+    set_input_w(bottom_output_w);
+    set_input_h(bottom_output_h);
+    set_input_c(bottom_output_c);
 
     output_w = (bottom_output_w + pad_w * 2 - S) / stride_w + 1;
     output_h = (bottom_output_h + pad_h * 2 - R) / stride_h + 1;
     
     set_output_w(output_w);
     set_output_h(output_h);
+    set_output_c(num_output);
+    static int index=0;
+    debug_info("ConvolutionDepthWise index=%d \n",index++);
+    debug_info("\t input_w=%d\n", get_input_w());
+    debug_info("\t input_h=%d\n", get_input_h());
+    debug_info("\t input_c=%d\n", get_input_c());
+    debug_info("\t output_w=%d\n", get_output_w());
+    debug_info("\t output_h=%d\n", get_output_h());
+    debug_info("\t output_c=%d\n", get_output_c());
+    debug_info("***************************************\n");
 }
 
 
