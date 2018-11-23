@@ -36,6 +36,13 @@ public:
     // model
     Mat weight_data;
 
+    int dst_data_width;
+
+    int conv_split_mode;
+    int line_num_per_split;
+    bool is_first_conv_split = false;
+    bool is_end_conv_split = false;
+    
     
 //    static int hard_patch_index;
 //    Mat bias_data;

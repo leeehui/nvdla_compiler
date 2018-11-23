@@ -61,6 +61,12 @@ void NvdlaConv::fill_params(std::vector<int> params)
     pad_h = *it++; 
     bias_term = *it++;
     weight_data_size = *it++;
+
+    conv_split_mode = *it++;
+    line_num_per_split = *it++;
+    is_first_conv_split = *it++;
+    is_end_conv_split = *it++;
+
     
 }
 
@@ -116,6 +122,11 @@ union dla_layer_param_container NvdlaConv::get_params(void)
     params.nv_conv_params.stride_w = stride_w;
     params.nv_conv_params.weight_data_size = weight_data_size;
     params.nv_conv_params.weight_data = weight_data.data;
+
+    params.nv_conv_params.conv_split_mode = conv_split_mode;
+    params.nv_conv_params.line_num_per_split = line_num_per_split;
+    params.nv_conv_params.is_first_conv_split = is_first_conv_split;
+    params.nv_conv_params.is_end_conv_split = is_end_conv_split;
     return params;
 }
 
@@ -137,7 +148,7 @@ union dla_operation_container NvdlaConv::fill_dla_op_des(void)
     memset(&dla_op_desc, 0, sizeof(union dla_operation_container));
     dla_op_desc.conv_op.conv_mode = conv_mode;
     //dla_op_desc.conv_op.data_reuse = 0;
-    //dla_op_desc.conv_op.waight_reuse = 0;
+    //dla_op_desc.conv_op.weight_reuse = 0;
     //dla_op_desc.conv_op.skip_data_rls =
     dla_op_desc.conv_op.skip_weight_rls = hard_patchs[hard_patch_index - 1].skip_weight_rls;
     dla_op_desc.conv_op.entry_per_slice = hard_patchs[hard_patch_index - 1].entry_per_slice;

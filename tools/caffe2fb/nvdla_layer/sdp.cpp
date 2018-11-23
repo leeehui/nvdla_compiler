@@ -12,7 +12,7 @@ NvdlaSDP::NvdlaSDP()
     weight_mem_flag = -1;
     dst_mem_flag = -1;
     nvdla_type = NvSDP;
-    action = ACTION_NONE;
+    action = SDP_ACTION_NONE;
     set_bpe(2);
 }
 NvdlaSDP::~NvdlaSDP()
@@ -108,10 +108,36 @@ union dla_operation_container NvdlaSDP::fill_dla_op_des(void)
             break;
         case SDP_ACTION_RELU:
             dla_op_desc.sdp_op.x1_op.enable = 1;
-            dla_op_desc.sdp_op.x1_op.alu_type = SDP_ALU_OP_SUM; //?? 
+            dla_op_desc.sdp_op.x1_op.alu_type = SDP_ALU_OP_SUM; 
             dla_op_desc.sdp_op.x1_op.type = SDP_OP_NONE;
             dla_op_desc.sdp_op.x1_op.mode = SDP_OP_PER_LAYER;
             dla_op_desc.sdp_op.x1_op.act = ACTIVATION_RELU;
+            break;
+        case SDP_ACTION_SCALE:
+            dla_op_desc.sdp_op.x1_op.enable = 1;
+            dla_op_desc.sdp_op.x1_op.alu_type = SDP_ALU_OP_SUM;
+            dla_op_desc.sdp_op.x1_op.type = SDP_OP_MUL;
+            dla_op_desc.sdp_op.x1_op.mode = SDP_OP_PER_KERNEL;
+            dla_op_desc.sdp_op.x1_op.act = ACTIVATION_NONE;
+            break;
+        case SDP_ACTION_ELTWISE:
+            dla_op_desc.sdp_op.x1_op.enable = 1;
+            dla_op_desc.sdp_op.x1_op.alu_type = SDP_ALU_OP_SUM;
+            dla_op_desc.sdp_op.x1_op.type = SDP_OP_ADD;
+            dla_op_desc.sdp_op.x1_op.mode = SDP_OP_PER_POINT;
+            dla_op_desc.sdp_op.x1_op.act = ACTIVATION_NONE;
+            break;
+        case SDP_ACTION_BATCHNORM:
+            dla_op_desc.sdp_op.x1_op.enable = 1;
+            dla_op_desc.sdp_op.x1_op.alu_type = SDP_ALU_OP_SUM;
+            dla_op_desc.sdp_op.x1_op.type = SDP_OP_BOTH;
+            dla_op_desc.sdp_op.x1_op.mode = SDP_OP_PER_KERNEL;
+            dla_op_desc.sdp_op.x1_op.act = ACTIVATION_NONE;
+            break;
+            
+        // used for writting mem from conv back to mem
+        case SDP_ACTION_NONE:
+            dla_op_desc.sdp_op.x1_op.enable = 0;
             break;
         default:
             log_error("not such action %s line=%d\n",__FUNCTION__,__LINE__);

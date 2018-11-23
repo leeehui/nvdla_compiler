@@ -34,6 +34,9 @@ public:
 public:
     int op_type;
     Mat coeffs;
+
+    Mat x1_data;
+
 };
 
 } // namespace ncnn

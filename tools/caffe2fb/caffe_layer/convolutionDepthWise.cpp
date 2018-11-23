@@ -3,6 +3,7 @@
 #include "layer_type.h"
 #include "debug.h"
 #include <vector>
+#include <cmath>
 
 namespace nvdla {
 
@@ -16,6 +17,17 @@ ConvolutionDepthWise::~ConvolutionDepthWise()
 {
 }
 
+int ConvolutionDepthWise::round_up(int num_to_round, int multiple)
+{
+    if (multiple == 0)
+        return num_to_round;
+
+    int remainder = num_to_round % multiple;
+    if (remainder == 0)
+        return num_to_round;
+
+    return num_to_round + multiple - remainder;
+}
 void ConvolutionDepthWise::calc_output_params(Layer *bottom_layer) 
 {
     int S = (kernel_w - 1) / dilation_w + 1;    
@@ -118,9 +130,36 @@ int ConvolutionDepthWise::load_model(const ModelBin& mb)
     return 0;
 }
 
+int ConvolutionDepthWise::calc_line_num_per_split(int left_bank_num, int line_stride_size)
+{
+    int line_num_per_split = 0;
+    int min_bank_num;
+    int max_bank_num;
+    int min_feature_size = (left_bank_num - 1) * NVDLA_CBUF_BANK_SIZE;
+    int max_feature_size = (left_bank_num) * NVDLA_CBUF_BANK_SIZE; 
+    min_bank_num = static_cast<int>(floor(static_cast<double>(min_feature_size) / static_cast<double>(line_stride_size)));
+    max_bank_num = static_cast<int>(floor(static_cast<double>(max_feature_size) / static_cast<double>(line_stride_size)));
 
-int ConvolutionDepthWise::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
-{   
+    // the num we are searching is between min_bank_num(open) and max_bank_num(closed)
+    for (int i = min_bank_num + 1; i <= max_bank_num; i++)
+    {
+        // the last stride within one split should have (kernel_h - stride_h) more lines
+        if (0 ==  ((i - (kernel_h - stride_h)) % stride_h))
+        {
+            // keep updating, use the largest one match the above conditions
+            line_num_per_split = i;
+        }
+    }
+
+    return line_num_per_split;
+}
+
+
+int ConvolutionDepthWise::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers, 
+                                    int conv_split_mode, 
+                                    int line_num_per_split, 
+                                    bool is_first_conv_split, bool is_end_conv_split)
+{
     Layer * layer = create_layer("NvdlaConv");
     std::vector <int> paras;
     paras.push_back(num_output);
@@ -134,16 +173,27 @@ int ConvolutionDepthWise::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_lay
     paras.push_back(pad_h);
     paras.push_back(bias_term);
     paras.push_back(weight_data_size);
-    paras.push_back(group);
    
+    paras.push_back(conv_split_mode);
+    paras.push_back(line_num_per_split);
+    paras.push_back(is_first_conv_split);
+    paras.push_back(is_end_conv_split);
+
     if(!layer)
     {
         printf("create layer NvdlaConv failed\n");
         return -1;
     }
 
-    //inside this function, NCNN ConvolutionDepthWise layer specific paramers are converted
-    //to NVDLA Conv descriptor data members
+    // Note: the following params are that of before Convolution Split-H
+    // this is just used for calculating split convolution params
+    layer->set_input_w(get_input_w());
+    layer->set_input_h(get_input_h());
+    layer->set_input_c(get_input_c());
+    layer->set_output_w(get_output_w());
+    layer->set_output_h(get_output_h());
+    layer->set_output_c(get_output_c());
+
     layer->fill_params(paras);
     layer->set_weight_data(weight_data);
     
@@ -164,13 +214,120 @@ int ConvolutionDepthWise::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_lay
         printf("error sdp has no bias data after conv");
     }
     nvdla_layers->push_back(layer);
+
+    return 0;
+}
+int ConvolutionDepthWise::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
+{   
+    //here we should decide the Working mode of conv
+    //1. Full input & Full weight
+    //2. Full input & Partial weight
+    //3. Split
+    //3.1. Partial input & Full weight
+    //3.2. Partial input & Partial weight
+    
+    // initialize to no split, all data, all weight 
+    conv_split_mode  split_mode = CONV_SPLIT_NONE;
+
+    int line_stride_size;
+    int weight_bank_num;
+    int feature_bank_num;
+    int feature_data_size;
+
+    // calculate src size
+    line_stride_size = get_input_w() * NVDLA_FEATURE_DATA_ALIGN * get_bpe();
+
+    // TODO: Image mode do NOT need the following if statement
+    if (get_is_first_conv())
+    {
+        feature_data_size = get_input_w() * get_input_h() * NVDLA_FEATURE_DATA_ALIGN * get_bpe();
+        // do not need any more
+        set_is_first_conv(false);                                 
+    }
+
+    // ConvolutionDepthWise need split data to group groups
+    feature_data_size = get_input_w() * get_input_h() * get_input_c() / group * get_bpe();
+    weight_data_size = round_up(weight_data_size, NVDLA_KERNEL_ALIGN) / group;
+
+    weight_bank_num = round_up(weight_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
+    feature_bank_num = round_up(feature_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
+
+
+    // need split
+    if ((weight_bank_num + feature_bank_num) > NVDLA_CBUF_BANK_NUM)
+    {
+
+        if ((weight_bank_num < NVDLA_CBUF_BANK_NUM) || (feature_bank_num < NVDLA_CBUF_BANK_NUM))
+        {
+            // all weight, partial data
+            if (weight_bank_num < NVDLA_CBUF_BANK_NUM)
+            {
+                split_mode = CONV_SPLIT_FEATURE;            
+            }
+            // all data, partial weight
+            else
+            {
+                split_mode = CONV_SPLIT_WEIGHT;
+            }
+        }
+        // partial data, partial weight
+        else
+        {
+            split_mode = CONV_SPLIT_ALL;
+        }
+    }
+
+    for (int i = 0; i < group; i++)
+    {
+    
+        // create nvdla layers according to split mode
+        switch (split_mode)
+        {
+            case CONV_SPLIT_NONE: 
+                {
+                    add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_NONE, 0, false, false);
+                    break;
+                }
+            case CONV_SPLIT_FEATURE: 
+                {
+                    // make sure all banks are used
+                    // split num ,  line number in every split
+
+                    int left_bank_num = NVDLA_CBUF_BANK_NUM - feature_bank_num;
+                    int line_num_per_split = calc_line_num_per_split(left_bank_num, line_stride_size);
+
+                    int conv_split_num = round_up(get_input_h(), line_num_per_split) / line_num_per_split; 
+
+                    // assert(line_num_per_split > 0)
+
+                    // add nvdla layers
+                    add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, true, false);
+                    for (int i = 0; i < conv_split_num - 2; i++)
+                    {
+                        add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, false, false);
+                    }
+                    add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, false, true);
+
+                    break;
+                }
+            case CONV_SPLIT_WEIGHT: 
+                {
+                    // priority of determining weight data bank number: 
+                    // NVDLA_MAC_CELL_NUM * 2 >> NVDLA_MAC_CELL_NUM >> use all left banks  
+                    add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_WEIGHT, 0, false, false);
+
+                    break;
+                }
+            case CONV_SPLIT_ALL: 
+                {
+                    debug_info("Currently Not support split_all mode\n");
+                    break;
+                }
+            default: break;
+        }
+    }
+    
     return 0;
 }        
 
 }
-
-
-
-
-
-

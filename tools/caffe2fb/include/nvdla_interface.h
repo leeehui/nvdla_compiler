@@ -1,6 +1,6 @@
 #ifndef DLA_INTERFACE_H
 #define DLA_INTERFACE_H
-
+#include "dla_interface.h"
 
 #define NVDLA_CBUF_BANK_NUM 16
 #define NVDLA_CBUF_ENTRY_PER_BANK 256
@@ -25,8 +25,7 @@ enum conv_split_mode
 #define ATOMIC_C_SIZE   128 //for half-float and weight data for conv direct mode
 
 //used in symbol_list_parser
-#define GROUP_KERNEL_NUM   16 //for half-float
-
+#define GROUP_KERNEL_NUM   16 //for half-float 
 
 
 
@@ -36,7 +35,7 @@ enum conv_split_mode
 
 enum dla_action 
 { 
-    ACTION_NONE = 0, //do nothing means Conv just use SDP's WDMA engine for wrighting the result to mem
+    SDP_ACTION_NONE = 0, //do nothing means Conv just use SDP's WDMA engine for wrighting the result to mem
     SDP_ACTION_ADD_BIAS = 1, 
     SDP_ACTION_RELU = 2,
     SDP_ACTION_BATCHNORM = 3,
@@ -59,6 +58,10 @@ struct dla_nv_conv_params
     int bias_term;
     int weight_data_size;
     void * weight_data; //data format is float
+    int conv_split_mode;
+    int line_num_per_split;
+    bool is_first_conv_split;
+    bool is_end_conv_split;
 };
 
 struct dla_nv_input_params
@@ -109,33 +112,6 @@ union dla_layer_param_container {
     struct dla_sdp_params sdp_params;
     struct dla_cdp_params cdp_params;
     struct dla_nv_softmax_params nv_softmax_params;
-};
-
-typedef unsigned short uint16_t;
-typedef signed short int16_t;
-typedef unsigned int uint32_t;
-typedef signed int int32_t;
-typedef unsigned char uint8_t;
-
-struct dla_data_cube {
-	uint16_t type; /* dla_mem_type */
-	int16_t address; /* offset to the actual IOVA in task.address_list */
-
-	uint32_t size;
-
-	/* cube dimensions */
-	uint16_t width;
-	uint16_t height;
-
-	uint16_t channel;
-	uint16_t reserved0;
-
-	/* stride information */
-	uint32_t line_stride;
-	uint32_t surf_stride;
-
-	/* For Rubik only */
-	uint32_t plane_stride;
 };
 
 struct dla_surface_desc {

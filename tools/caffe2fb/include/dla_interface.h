@@ -29,6 +29,7 @@
 #ifndef __CAFFE2FB_DLA_INTERFACE_H_
 #define __CAFFE2FB_DLA_INTERFACE_H_
 
+#include <cstdint>
 /**
  * @ingroup Processors
  * @name DLA Processors
@@ -317,7 +318,7 @@ struct dla_cvt_param {
 
 	int32_t  offset;
 }__attribute__ ((packed, aligned(4)));;
-#if 0
+
 struct dla_data_cube {
 	uint16_t type; /* dla_mem_type */
 	int16_t address; /* offset to the actual IOVA in task.address_list */
@@ -338,7 +339,7 @@ struct dla_data_cube {
 	/* For Rubik only */
 	uint32_t plane_stride;
 } __attribute__ ((packed, aligned(4)));;
-#endif
+
 #define PIXEL_OVERRIDE_UINT 0
 #define PIXEL_OVERRIDE_INT  1
 

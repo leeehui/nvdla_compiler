@@ -23,6 +23,8 @@ public:
     int local_size;
     int alpha;
     int beta;
+
+    Mat lut_data;
     
 };
 

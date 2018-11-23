@@ -21,6 +21,13 @@ public:
 
     virtual void calc_output_params(Layer *bottom_layer);
 
+    virtual int round_up(int num_to_round, int multiple);
+
+    virtual int calc_line_num_per_split(int left_bank_num, int line_stride_size);
+    virtual int add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers, 
+                                    int conv_split_mode, 
+                                    int line_num_per_split, 
+                                    bool is_first_conv_split, bool is_end_conv_split);
 public:
     // param
     int num_output;

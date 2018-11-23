@@ -28,6 +28,7 @@ public:
     int alpha;
     int beta;
 
+    Mat lut_data;
 };
 
 } 

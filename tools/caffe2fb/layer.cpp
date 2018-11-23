@@ -55,7 +55,7 @@ void Layer::set_action(dla_action action_p)
 
 dla_action Layer::get_action(void)
 {
-    return ACTION_NONE;
+    return SDP_ACTION_NONE;
 }
 
 int Layer::get_bpe(void)
