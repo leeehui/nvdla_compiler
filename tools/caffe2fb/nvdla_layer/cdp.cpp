@@ -34,7 +34,7 @@ namespace nvdla {
     void NvdlaCDP::print_layer_info(void)
     {
 
-        debug_info("cdp info.........\n");
+        debug_info("cdp info......\n");
 
     }
 

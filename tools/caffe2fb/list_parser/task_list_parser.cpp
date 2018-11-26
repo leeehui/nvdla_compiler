@@ -128,7 +128,7 @@ void TaskListParser::buildList() {
 			}
 		}
 		debug_info("%s, %d, task_dla_start_flag = %d, task_emu_start_flag = %d\n", __FUNCTION__, __LINE__, task_dla_start_flag, task_emu_start_flag);
-		if((task_emu_start_flag == 1)){
+		if(task_emu_start_flag == 1){
 			if(pre_layer->nvdla_type != NvSoftmax){
 				//dla task end
 				task.interface= ILoadable::Interface_DLA1;

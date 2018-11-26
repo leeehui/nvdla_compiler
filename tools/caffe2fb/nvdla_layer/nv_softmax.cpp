@@ -30,10 +30,10 @@ void NvdlaSoftmax::fill_params(std::vector<int> params)
 void NvdlaSoftmax::print_layer_info(void)
 {
 
-    debug_info("NvdlaSoftmax info.........\n");
-    debug_info("para...\n");
-    debug_info("layer_type=%d,axis=%d\n",nvdla_type,axis);
-    debug_info("src_mem_flag=%d,weight_mem_flag=%d,dst_mem_flag=%d\n",src_mem_flag,weight_mem_flag,dst_mem_flag);
+    debug_info("NvdlaSoftmax info......\n");
+//    debug_info("para...\n");
+//    debug_info("layer_type=%d,axis=%d\n",nvdla_type,axis);
+//    debug_info("src_mem_flag=%d,weight_mem_flag=%d,dst_mem_flag=%d\n",src_mem_flag,weight_mem_flag,dst_mem_flag);
 
 }
 

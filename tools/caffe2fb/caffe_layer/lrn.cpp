@@ -75,7 +75,6 @@ int LRN::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
     //inside this function, NCNN LRN layer specific paramers are converted
     //to NVDLA Conv descriptor data members
     layer->fill_params(paras);
-    
     nvdla_layers->push_back(layer);
 
     return 0;

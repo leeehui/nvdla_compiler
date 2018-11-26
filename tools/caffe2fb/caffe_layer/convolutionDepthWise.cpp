@@ -11,6 +11,7 @@ DEFINE_LAYER_CREATOR(ConvolutionDepthWise)
 
 ConvolutionDepthWise::ConvolutionDepthWise()
 {
+    set_bpe(2);
 }
 
 ConvolutionDepthWise::~ConvolutionDepthWise()
@@ -235,19 +236,25 @@ int ConvolutionDepthWise::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_lay
     int feature_data_size;
 
     // calculate src size
-    line_stride_size = get_input_w() * NVDLA_FEATURE_DATA_ALIGN * get_bpe();
+    line_stride_size = get_input_w() * NVDLA_FEATURE_DATA_ALIGN;
 
     // TODO: Image mode do NOT need the following if statement
-    if (get_is_first_conv())
+    if (true == get_is_first_conv())
     {
+        debug_info("first Convolution\n");
         feature_data_size = get_input_w() * get_input_h() * NVDLA_FEATURE_DATA_ALIGN * get_bpe();
         // do not need any more
         set_is_first_conv(false);                                 
     }
+    else
+    {
+        // ConvolutionDepthWise need split data to group groups
+        feature_data_size = get_input_w() * get_input_h() * get_input_c() / group * get_bpe();
+    }
 
     // ConvolutionDepthWise need split data to group groups
-    feature_data_size = get_input_w() * get_input_h() * get_input_c() / group * get_bpe();
     weight_data_size = round_up(weight_data_size, NVDLA_KERNEL_ALIGN) / group;
+    weight_data_size = weight_data_size * get_bpe();
 
     weight_bank_num = round_up(weight_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
     feature_bank_num = round_up(feature_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
@@ -293,7 +300,7 @@ int ConvolutionDepthWise::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_lay
                     // make sure all banks are used
                     // split num ,  line number in every split
 
-                    int left_bank_num = NVDLA_CBUF_BANK_NUM - feature_bank_num;
+                    int left_bank_num = NVDLA_CBUF_BANK_NUM - weight_bank_num;
                     int line_num_per_split = calc_line_num_per_split(left_bank_num, line_stride_size);
 
                     int conv_split_num = round_up(get_input_h(), line_num_per_split) / line_num_per_split; 

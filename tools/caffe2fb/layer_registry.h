@@ -15,6 +15,7 @@
 {"Softmax",Softmax_layer_creator},
 {"NvdlaConv",NvdlaConv_layer_creator},
 {"NvdlaSDP",NvdlaSDP_layer_creator},
+{"NvdlaCDP",NvdlaCDP_layer_creator},
 {"NvdlaPDP",NvdlaPDP_layer_creator},
 {"NvdlaInput",NvdlaInput_layer_creator},
 {"NvdlaSoftmax",NvdlaSoftmax_layer_creator},

@@ -24,6 +24,7 @@ DEFINE_LAYER_CREATOR(InnerProduct)
 
 InnerProduct::InnerProduct()
 {
+    set_bpe(2);
 }
 
 InnerProduct::~InnerProduct()

@@ -30,10 +30,10 @@ void NvdlaSDP::set_weight_data(Mat weight_data_p)
 void NvdlaSDP::print_layer_info(void)
 {
 
-    debug_info("sdp info.........\n");
-    debug_info("para...\n");
-    debug_info("layer_type=%d,slope=%d \n",nvdla_type,slope);
-    debug_info("src_mem_flag=%d,weight_mem_flag=%d,dst_mem_flag=%d\n",src_mem_flag,weight_mem_flag,dst_mem_flag);
+    debug_info("sdp info......\n");
+    //debug_info("para...\n");
+    //debug_info("layer_type=%d,slope=%d \n",nvdla_type,slope);
+    //debug_info("src_mem_flag=%d,weight_mem_flag=%d,dst_mem_flag=%d\n",src_mem_flag,weight_mem_flag,dst_mem_flag);
     #if 0
     debug_info("weight data top 10...\n");
     float *data = (float *)weight_data.data;

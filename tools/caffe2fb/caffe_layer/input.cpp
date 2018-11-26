@@ -21,6 +21,7 @@ DEFINE_LAYER_CREATOR(Input)
 
 Input::Input()
 {
+    set_bpe(2);
 }
 
 void Input::calc_output_params(Layer *bottom_layer)
@@ -31,7 +32,7 @@ void Input::calc_output_params(Layer *bottom_layer)
     set_output_w(w);
     set_output_h(h);
     set_output_c(c);
-    if (!get_is_input())
+    if (false == get_is_input())
     {
         set_is_input(true);
     }

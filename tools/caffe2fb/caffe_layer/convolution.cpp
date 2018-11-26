@@ -11,6 +11,7 @@ DEFINE_LAYER_CREATOR(Convolution)
 
 Convolution::Convolution()
 {
+    set_bpe(2);
 }
 
 Convolution::~Convolution()
@@ -47,7 +48,7 @@ void Convolution::calc_output_params(Layer *bottom_layer)
     set_output_w(output_w);
     set_output_h(output_h);
     set_output_c(num_output);
-    if (bottom_layer->get_is_input())
+    if (true == bottom_layer->get_is_input())
     {
         // this flag is used by convert_to_nvdla_layer function
         set_is_first_conv(true);
@@ -201,7 +202,7 @@ int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers,
     layer = create_layer("NvdlaSDP");
     if(!layer)
     {
-        printf("create layer NvdlaSDP failed\n");
+        debug_info("create layer NvdlaSDP failed\n");
         return -1;
     }
     if (bias_term == 1)
@@ -211,7 +212,7 @@ int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers,
     }
     else
     {
-        printf("error sdp has no bias data after conv");
+        debug_info("error sdp has no bias data after conv");
     }
     nvdla_layers->push_back(layer);
 
@@ -235,22 +236,32 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
     int feature_data_size;
 
     // calculate src size
-    line_stride_size = get_input_w() * NVDLA_FEATURE_DATA_ALIGN * get_bpe();
+    line_stride_size = get_input_w() * NVDLA_FEATURE_DATA_ALIGN;
 
     // TODO: Image mode do NOT need the following if statement
-    if (get_is_first_conv())
+    if (true == get_is_first_conv())
     {
+        debug_info("first Convolution\n");
         feature_data_size = get_input_w() * get_input_h() * NVDLA_FEATURE_DATA_ALIGN * get_bpe();
         // do not need any more
         set_is_first_conv(false);                                 
     }
-
-    feature_data_size = get_input_w() * get_input_h() * get_input_c() * get_bpe();
+    else
+    {
+        feature_data_size = get_input_w() * get_input_h() * get_input_c() * get_bpe();
+    }
+    weight_data_size = weight_data_size * get_bpe();
     weight_data_size = round_up(weight_data_size, NVDLA_KERNEL_ALIGN);
+
     weight_bank_num = round_up(weight_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
     feature_bank_num = round_up(feature_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
 
 
+    debug_info("Convolution \n");
+    debug_info("feature_data_size: %d\n", feature_data_size);
+    debug_info("weight_data_size: %d\n", weight_data_size);
+    debug_info("feature_bank_num: %d\n", feature_bank_num);
+    debug_info("weight_bank_num: %d\n", weight_bank_num);
     
     // need split
     if ((weight_bank_num + feature_bank_num) > NVDLA_CBUF_BANK_NUM)
@@ -276,6 +287,8 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
         }
     }
 
+    debug_info("split_mode: %d\n", split_mode);
+
     // create nvdla layers according to split mode
     switch (split_mode)
     {
@@ -289,12 +302,13 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
             // make sure all banks are used
             // split num ,  line number in every split
             
-            int left_bank_num = NVDLA_CBUF_BANK_NUM - feature_bank_num;
+            int left_bank_num = NVDLA_CBUF_BANK_NUM - weight_bank_num;
             int line_num_per_split = calc_line_num_per_split(left_bank_num, line_stride_size);
 
             int conv_split_num = round_up(get_input_h(), line_num_per_split) / line_num_per_split; 
 
             // assert(line_num_per_split > 0)
+            debug_info("conv_split_num: %d\n", conv_split_num);
 
             // add nvdla layers
             add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, true, false);

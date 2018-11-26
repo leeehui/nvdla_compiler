@@ -32,10 +32,10 @@ void NvdlaInput::fill_params(std::vector<int> params)
 void NvdlaInput::print_layer_info(void)
 {
 
-    debug_info("input info.........\n");
-    debug_info("para...\n");
-    debug_info("layer_type=%d,w=%d,h=%d,c=%d\n",nvdla_type,w,h,c);
-    debug_info("src_mem_flag=%d,weight_mem_flag=%d,dst_mem_flag=%d\n",src_mem_flag,weight_mem_flag,dst_mem_flag);
+    debug_info("input info......\n");
+    //debug_info("para...\n");
+    //debug_info("layer_type=%d,w=%d,h=%d,c=%d\n",nvdla_type,w,h,c);
+    //debug_info("src_mem_flag=%d,weight_mem_flag=%d,dst_mem_flag=%d\n",src_mem_flag,weight_mem_flag,dst_mem_flag);
 }
 
 union dla_layer_param_container NvdlaInput::get_params(void)
