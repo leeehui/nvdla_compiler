@@ -29,10 +29,12 @@ void BatchNorm::calc_output_params(Layer *bottom_layer)
 {
     int bottom_output_w = bottom_layer->get_output_w();
     int bottom_output_h = bottom_layer->get_output_h();
+    int bottom_output_c = bottom_layer->get_output_c();
     set_input_w(bottom_output_w);
     set_input_h(bottom_output_h);
+    set_input_c(bottom_output_c);
     set_output_w(bottom_output_w);
-    set_output_h(bottom_output_h);
+    set_output_c(bottom_output_c);
     static int index=0;
     debug_info("BatchNorm index=%d \n",index++);
     debug_info("\t input_w=%d\n", get_input_w());
@@ -51,6 +53,23 @@ int BatchNorm::load_param(const ParamDict& pd)
     debug_info("BatchNorm index=%d parameters:\n",index++);
     debug_info("\t channels=%d\n", channels);
     debug_info("***************************************\n");
+    return 0;
+}
+
+int BatchNorm::load_model(const ModelBin& mb)
+{
+    batch_norm_data = mb.load(get_input_c(), 0);
+    static int index = 0;
+    debug_info("BatchNorm index=%d mode data......\n",index++);
+    debug_info("batch_norm_data top 10.....\n");
+    float * data = (float *)batch_norm_data.data;
+    for(int i = 0; i < 10; i++)
+    {
+        debug_info("index=%d ,data=%f....\n",i, *data++);
+    }
+    if (batch_norm_data.empty())
+        return -100;
+
     return 0;
 }
 

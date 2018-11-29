@@ -174,6 +174,7 @@ int ConvolutionDepthWise::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layer
     paras.push_back(pad_h);
     paras.push_back(bias_term);
     paras.push_back(weight_data_size);
+    paras.push_back(group);
    
     paras.push_back(conv_split_mode);
     paras.push_back(line_num_per_split);

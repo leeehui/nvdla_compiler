@@ -57,9 +57,12 @@ struct dla_nv_conv_params
     int pad_h;
     int bias_term;
     int weight_data_size;
+    int group;
     void * weight_data; //data format is float
     int conv_split_mode;
     int line_num_per_split;
+    int min_src_data_height;
+    int max_src_data_height;
     bool is_first_conv_split;
     bool is_end_conv_split;
 };

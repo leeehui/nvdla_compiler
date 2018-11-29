@@ -10,6 +10,7 @@
 
 #include "list_entry_parser.h"
 #include "task_list_parser.h"
+#include "conv.h"
 
 namespace nvdla {
 
@@ -45,6 +46,13 @@ public:
 	NvU64 getCovlutionOutputMemSize(CONV_PAR_STR* convpar);
 
 	void layerInputParse(Layer* layer);
+    void addConvMemEntry(int mem_id, int conv_id, int size);
+    void setConvDescs(Layer *layer, 
+                      union dla_layer_param_container layer_input_par,
+                      int src_data_type,
+                      int src_data_addr,
+                      int weight_data_addr,
+                      int dst_data_height);
 	void layerConvlutionParse(Layer* layer, Layer* pre_layer);
 	void layerSdpParse(Layer* layer, Layer* pre_layer);
 	void layerPdpParse(Layer* layer, Layer* pre_layer);

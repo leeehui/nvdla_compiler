@@ -31,8 +31,8 @@ void TaskListParser::taskTypeParser(Layer* layer, Layer* pre_layer, NvU32* typec
 		return ;
 	}
 	
-	if((pre_layer->nvdla_type == NvConv) ||  (pre_layer->nvdla_type == NvSDP) || (pre_layer->nvdla_type == NvPDP)){
-		if((layer->nvdla_type == NvConv) ||  (layer->nvdla_type == NvSDP) || (layer->nvdla_type == NvPDP)){
+	if((pre_layer->nvdla_type == NvConv) ||  (pre_layer->nvdla_type == NvSDP) || (pre_layer->nvdla_type == NvPDP)|| (pre_layer->nvdla_type == NvCDP)){
+		if((layer->nvdla_type == NvConv) ||  (layer->nvdla_type == NvSDP) || (layer->nvdla_type == NvPDP) || (pre_layer->nvdla_type == NvCDP)){
             //task 0   dla_task
 			*tasktype = 0; 
 			//count
@@ -44,7 +44,7 @@ void TaskListParser::taskTypeParser(Layer* layer, Layer* pre_layer, NvU32* typec
 			*typecount = 0;
 		}
 	}else if(pre_layer->nvdla_type == NvSoftmax){
-	    if((layer->nvdla_type == NvConv) ||  (layer->nvdla_type == NvSDP) || (layer->nvdla_type == NvPDP)){
+	    if((layer->nvdla_type == NvConv) ||  (layer->nvdla_type == NvSDP) || (layer->nvdla_type == NvPDP) || (layer->nvdla_type == NvCDP) ){
 			//task 0 dla_task
 			*tasktype = 0;
 			//start
@@ -55,7 +55,7 @@ void TaskListParser::taskTypeParser(Layer* layer, Layer* pre_layer, NvU32* typec
 			*typecount = 1;
 	    }
 	}else if(pre_layer->nvdla_type == NvInput){
-	    if((layer->nvdla_type == NvConv) ||  (layer->nvdla_type == NvSDP) || (layer->nvdla_type == NvPDP)){
+	    if((layer->nvdla_type == NvConv) ||  (layer->nvdla_type == NvSDP) || (layer->nvdla_type == NvPDP) || (layer->nvdla_type == NvCDP)){
 			//task 0 dla_task
 			*tasktype = 0;
 			//start
@@ -135,7 +135,7 @@ void TaskListParser::buildList() {
 				task.id = task_id;
 				task.instance = -1;
 				//push start index
-				while(task.preactions.size()){
+				while(task.preactions.size()){//first we should remove previous layer's preactions as we reuse 'task' variable
 					task.preactions.pop_back();
 				}
 				task.preactions.push_back(task_dla_start_index);
@@ -210,39 +210,6 @@ void TaskListParser::buildList() {
 
 	}
 	debug_info("%s, %d, mList.size = %d\n", __FUNCTION__, __LINE__, mList.size());
-	/*
-	for (int i=0; i<layers.size(); i++) {
-		ILoadable::TaskListEntry task;
-
-		layer = layers[i];
-
-		if (layer->nvdla_type == NvInput)
-			continue;
-
-		
-		if (layer->nvdla_type == NvConv ||
-			layer->nvdla_type == NvSDP  ||
-			layer->nvdla_type == NvPDP) {
-
-			if (current_type == ILoadable::Interface_NONE)
-				current_type = ILoadable::Interface_DLA1;
-
-		}
-		
-
-		if (layer->nvdla_type == NvSoftmax) {
-			task.id = task_id++;
-			task.interface = ILoadable::Interface_DLA1;
-			task.instance = -1;
-			mList.push_back(task);
-
-			task.id = task_id++;
-			task.interface = ILoadable::Interface_EMU1;
-			task.instance = -1;
-			mList.push_back(task);
-		}
-	}
-	*/
 }
 
 void TaskListParser::fillAddressList()

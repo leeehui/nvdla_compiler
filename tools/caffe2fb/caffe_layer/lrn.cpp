@@ -57,6 +57,24 @@ int LRN::load_param(const ParamDict& pd)
     return 0;
 }
 
+int LRN::load_model(const ModelBin& mb)
+{
+    lut_data = mb.load(get_input_c(), 0);
+    static int index = 0;
+    debug_info("LRN index=%d mode data......\n",index++);
+    debug_info("lut_data top 10.....\n");
+    float * data = (float *)lut_data.data;
+    for(int i = 0; i < 10; i++)
+    {
+        debug_info("index=%d ,data=%f....\n",i, *data++);
+    }
+    if (lut_data.empty())
+        return -100;
+
+    return 0;
+}
+
+
 int LRN::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
 {   
     Layer * layer = create_layer("NvdlaCDP");

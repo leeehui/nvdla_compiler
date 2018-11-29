@@ -4,7 +4,7 @@
 #include "debug.h"
 
 namespace nvdla {
-static int hard_patch_index = 0;
+//static int hard_patch_index = 0;
 DEFINE_LAYER_CREATOR(NvdlaConv)
 
 NvdlaConv::NvdlaConv()
@@ -23,23 +23,23 @@ NvdlaConv::NvdlaConv()
     stride_h = 1;
     pad_w = 0;
     pad_h = 0;
-    if(hard_patchs[0].entry_per_slice != 7){
-        hard_patchs[0].entry_per_slice = 7;
-        hard_patchs[0].skip_weight_rls = 0;
-        hard_patchs[0].weight_bank = 1;
-
-        hard_patchs[1].entry_per_slice = 6;
-        hard_patchs[1].skip_weight_rls = 0;
-        hard_patchs[1].weight_bank = 2;
-
-        hard_patchs[2].entry_per_slice = 4;
-        hard_patchs[2].skip_weight_rls = 0;
-        hard_patchs[2].weight_bank = 2;
-
-        hard_patchs[3].entry_per_slice = 8;
-        hard_patchs[3].skip_weight_rls = 1;
-        hard_patchs[3].weight_bank = 1;
-    }
+//    if(hard_patchs[0].entry_per_slice != 7){
+//        hard_patchs[0].entry_per_slice = 7;
+//        hard_patchs[0].skip_weight_rls = 0;
+//        hard_patchs[0].weight_bank = 1;
+//
+//        hard_patchs[1].entry_per_slice = 6;
+//        hard_patchs[1].skip_weight_rls = 0;
+//        hard_patchs[1].weight_bank = 2;
+//
+//        hard_patchs[2].entry_per_slice = 4;
+//        hard_patchs[2].skip_weight_rls = 0;
+//        hard_patchs[2].weight_bank = 2;
+//
+//        hard_patchs[3].entry_per_slice = 8;
+//        hard_patchs[3].skip_weight_rls = 1;
+//        hard_patchs[3].weight_bank = 1;
+//    }
 }
 
 NvdlaConv::~NvdlaConv()
@@ -61,9 +61,12 @@ void NvdlaConv::fill_params(std::vector<int> params)
     pad_h = *it++; 
     bias_term = *it++;
     weight_data_size = *it++;
+    group = *it++;
 
     conv_split_mode = *it++;
     line_num_per_split = *it++;
+    min_src_data_height = *it++;
+    max_src_data_height = *it++;
     is_first_conv_split = *it++;
     is_end_conv_split = *it++;
 
@@ -121,10 +124,13 @@ union dla_layer_param_container NvdlaConv::get_params(void)
     params.nv_conv_params.stride_h = stride_h;
     params.nv_conv_params.stride_w = stride_w;
     params.nv_conv_params.weight_data_size = weight_data_size;
+    params.nv_conv_params.group = group;
     params.nv_conv_params.weight_data = weight_data.data;
 
     params.nv_conv_params.conv_split_mode = conv_split_mode;
     params.nv_conv_params.line_num_per_split = line_num_per_split;
+    params.nv_conv_params.min_src_data_height = min_src_data_height;
+    params.nv_conv_params.max_src_data_height = max_src_data_height;
     params.nv_conv_params.is_first_conv_split = is_first_conv_split;
     params.nv_conv_params.is_end_conv_split = is_end_conv_split;
     return params;
@@ -144,20 +150,20 @@ union dla_surface_container NvdlaConv::fill_dla_surface_des(void)
 union dla_operation_container NvdlaConv::fill_dla_op_des(void)
 {
     union dla_operation_container dla_op_desc;
-    hard_patch_index++;
+    //hard_patch_index++;
     memset(&dla_op_desc, 0, sizeof(union dla_operation_container));
     dla_op_desc.conv_op.conv_mode = conv_mode;
     //dla_op_desc.conv_op.data_reuse = 0;
     //dla_op_desc.conv_op.weight_reuse = 0;
     //dla_op_desc.conv_op.skip_data_rls =
-    dla_op_desc.conv_op.skip_weight_rls = hard_patchs[hard_patch_index - 1].skip_weight_rls;
-    dla_op_desc.conv_op.entry_per_slice = hard_patchs[hard_patch_index - 1].entry_per_slice;
+    //dla_op_desc.conv_op.skip_weight_rls = hard_patchs[hard_patch_index - 1].skip_weight_rls;
+    //dla_op_desc.conv_op.entry_per_slice = hard_patchs[hard_patch_index - 1].entry_per_slice;
     dla_op_desc.conv_op.data_format = FORMAT_FEATURE;
     dla_op_desc.conv_op.fetch_grain = 1;
     dla_op_desc.conv_op.batch = 1;
     dla_op_desc.conv_op.weight_format = WEIGHT_FORMAT_UNCOMPRESSED;
     dla_op_desc.conv_op.data_bank = 1;
-    dla_op_desc.conv_op.weight_bank = hard_patchs[hard_patch_index - 1].weight_bank;
+    //dla_op_desc.conv_op.weight_bank = hard_patchs[hard_patch_index - 1].weight_bank;
     //dla_op_desc.conv_op.batch_stride = 
     //dla_op_desc.conv_op.post_extension = 
     //dla_op_desc.conv_op.pixel_override = 

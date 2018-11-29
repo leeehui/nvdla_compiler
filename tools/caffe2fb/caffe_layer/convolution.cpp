@@ -132,18 +132,22 @@ int Convolution::load_model(const ModelBin& mb)
     return 0;
 }
 
-int Convolution::calc_line_num_per_split(int left_bank_num, int line_stride_size)
+int Convolution::calc_line_num_per_split(int left_bank_num, int line_stride_size, int *min_src_data_height, int *max_src_data_height)
 {
     int line_num_per_split = 0;
-    int min_bank_num;
-    int max_bank_num;
+    int min_line_num;
+    int max_line_num;
     int min_feature_size = (left_bank_num - 1) * NVDLA_CBUF_BANK_SIZE;
     int max_feature_size = (left_bank_num) * NVDLA_CBUF_BANK_SIZE; 
-    min_bank_num = static_cast<int>(floor(static_cast<double>(min_feature_size) / static_cast<double>(line_stride_size)));
-    max_bank_num = static_cast<int>(floor(static_cast<double>(max_feature_size) / static_cast<double>(line_stride_size)));
+    min_line_num = static_cast<int>(floor(static_cast<double>(min_feature_size) / static_cast<double>(line_stride_size)));
+    max_line_num = static_cast<int>(floor(static_cast<double>(max_feature_size) / static_cast<double>(line_stride_size)));
 
-    // the num we are searching is between min_bank_num(open) and max_bank_num(closed)
-    for (int i = min_bank_num + 1; i <= max_bank_num; i++)
+    *max_src_data_height = max_line_num;
+    *min_src_data_height = min_line_num;
+
+
+    // the num we are searching is between min_line_num(open) and max_line_num(closed)
+    for (int i = min_line_num + 1; i <= max_line_num; i++)
     {
         // the last stride within one split should have (kernel_h - stride_h) more lines
         if (0 ==  ((i - (kernel_h - stride_h)) % stride_h))
@@ -159,6 +163,8 @@ int Convolution::calc_line_num_per_split(int left_bank_num, int line_stride_size
 int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers, 
                                     int conv_split_mode, 
                                     int line_num_per_split, 
+                                    int min_src_data_height, 
+                                    int max_src_data_height, 
                                     bool is_first_conv_split, bool is_end_conv_split)
 {
     Layer * layer = create_layer("NvdlaConv");
@@ -177,6 +183,8 @@ int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers,
    
     paras.push_back(conv_split_mode);
     paras.push_back(line_num_per_split);
+    paras.push_back(min_src_data_height);
+    paras.push_back(max_src_data_height);
     paras.push_back(is_first_conv_split);
     paras.push_back(is_end_conv_split);
 
@@ -294,7 +302,7 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
     {
         case CONV_SPLIT_NONE: 
         {
-            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_NONE, 0, false, false);
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_NONE, 0, 0, 0, false, false);
             break;
         }
         case CONV_SPLIT_FEATURE: 
@@ -302,21 +310,53 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
             // make sure all banks are used
             // split num ,  line number in every split
             
+            int min_src_data_height;
+            int max_src_data_height;
             int left_bank_num = NVDLA_CBUF_BANK_NUM - weight_bank_num;
-            int line_num_per_split = calc_line_num_per_split(left_bank_num, line_stride_size);
+            int line_num_per_split = 
+                calc_line_num_per_split(left_bank_num, line_stride_size, &min_src_data_height, &max_src_data_height);
 
             int conv_split_num = round_up(get_input_h(), line_num_per_split) / line_num_per_split; 
 
             // assert(line_num_per_split > 0)
             debug_info("conv_split_num: %d\n", conv_split_num);
 
+            // here we update the first split in case of pad is not 0
+            // use same method as used in calc_line_num_per_split
+            int line_num_per_split_first;
+            bool is_num_found = false;
+            int additional_line = kernel_h - stride_h;
+            for (int i = min_src_data_height; i <= max_src_data_height; i++)
+            {
+                if (0 ==  ((i + pad_h - additional_line) % stride_h))
+                {
+                    line_num_per_split_first = i;
+                    if (!is_num_found)
+                    {
+                        is_num_found = true;
+                    }
+                }
+            }
+
+            if (!is_num_found)
+            {
+                debug_info("Fatal error: cannot find proper line_num_per_split\n");
+            }
+
+
             // add nvdla layers
-            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, true, false);
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split_first, 
+                                min_src_data_height, max_src_data_height, true, false);
             for (int i = 0; i < conv_split_num - 2; i++)
             {
-                add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, false, false);
+                add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, 
+                                    min_src_data_height, max_src_data_height, false, false);
             }
-            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, false, true);
+
+            int line_num_per_split_end = (get_input_w() - line_num_per_split_first - additional_line) % 
+                                        (line_num_per_split - additional_line);
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split_end , 
+                                min_src_data_height, max_src_data_height, false, true);
 
             break;
         }
@@ -324,7 +364,7 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
         {
             // priority of determining weight data bank number: 
             // NVDLA_MAC_CELL_NUM * 2 >> NVDLA_MAC_CELL_NUM >> use all left banks  
-            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_WEIGHT, 0, false, false);
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_WEIGHT, 0, 0, 0, false, false);
             
             break;
         }

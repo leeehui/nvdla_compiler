@@ -32,6 +32,7 @@ public:
     int bias_term;
 
     int weight_data_size;
+    int group;
 
     // model
     Mat weight_data;
@@ -40,6 +41,8 @@ public:
 
     int conv_split_mode;
     int line_num_per_split;
+    int min_src_data_height;
+    int max_src_data_height;
     bool is_first_conv_split = false;
     bool is_end_conv_split = false;
     
@@ -48,13 +51,13 @@ public:
 //    Mat bias_data;
 private:
     int conv_mode;
-    //some hardware registers congfiure hard patch for Lenet test
-    //static int hard_patch_index;
-    struct hard_patch{
-         uint8_t skip_weight_rls;
-         uint16_t entry_per_slice;
-         uint8_t weight_bank;
-    }hard_patchs[4]; // 4 is the conv layer num in Lenet
+    ////some hardware registers congfiure hard patch for Lenet test
+    ////static int hard_patch_index;
+    //struct hard_patch{
+    //     uint8_t skip_weight_rls;
+    //     uint16_t entry_per_slice;
+    //     uint8_t weight_bank;
+    //}hard_patchs[4]; // 4 is the conv layer num in Lenet
 };
 
 } 
