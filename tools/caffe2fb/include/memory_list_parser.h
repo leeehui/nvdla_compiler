@@ -59,6 +59,7 @@ public:
     void layerCdpParse(Layer* layer, Layer* pre_layer);
 	void layerSoftmaxParse(Layer* layer, Layer* pre_layer);
 	void allocMemforDlaTask(ILoadable::TaskListEntry* taskentry);
+    void addTaskMemEntry(std::string content, int size);
 	void allocMemforEmuTask(ILoadable::TaskListEntry* taskentry);
 	void taskTypeParse(ILoadable::TaskListEntry* taskentry);
 	void fillTaskAddrList(void);

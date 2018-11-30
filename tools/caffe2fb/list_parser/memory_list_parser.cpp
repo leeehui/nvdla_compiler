@@ -621,217 +621,92 @@ void MemoryListParser::layerSoftmaxParse(Layer* layer, Layer* pre_layer){
 	return ;
 }
 
-void MemoryListParser::allocMemforDlaTask(ILoadable::TaskListEntry* taskentry){
+void MemoryListParser::addTaskMemEntry(string content, int size)
+{
 	nvdla::ILoadable::MemoryListEntry mle;
+	mle.id = mem_id;
+	mle.alignment = MEM_ALIGNMENT_PAGE;
+	mle.bind_id = 0;
+	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
+	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
+    mle.contents.clear();
+	mle.contents.push_back(content);
+    mle.offsets.clear();
+	mle.offsets.push_back(0);
+	mle.size = size; 
+	mle.tensor_desc_id = 0;
+	mList.push_back(mle);
+	mem_id++;
+}
+
+void MemoryListParser::allocMemforDlaTask(ILoadable::TaskListEntry* taskentry){
 	stringstream content;
+    int size;
 	if(!taskentry){
 		printf("%s, %d, taskentry is null!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
 	//alloc mem for struct dla_network_desc
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
 	content.str("");
 	content << "task_" << taskentry->id << "_network_desc" << endl;
-	mle.contents.push_back(content.str());
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.offsets.push_back(0);
-	debug_info("%s, %d, mle.contents.size = %d\n", __FUNCTION__, __LINE__, mle.contents.size());
-	mle.size = roundUp(sizeof(struct dla_network_desc), 4); 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+	size = roundUp(sizeof(struct dla_network_desc), 4); 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 	//alloc mem for struct dla_common_op_desc
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
 	content.str("");
 	content << "task_" << taskentry->id << "_dep_graph" << endl;
-	mle.contents.push_back(content.str());
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.offsets.push_back(0);
-	mle.size = roundUp(sizeof(struct dla_common_op_desc), 4); 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+	size = roundUp(sizeof(struct dla_common_op_desc), 4); 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 	//alloc mem for union dla_operation_container
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
 	content.str("");
 	content << "task_" << taskentry->id << "_op_list" << endl;
-	mle.contents.push_back(content.str());
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.offsets.push_back(0);
-	mle.size = roundUp(sizeof(union dla_operation_container), 4); 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+	size = roundUp(sizeof(union dla_operation_container), 4); 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 	//alloc mem for union dla_surface_container
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
 	content.str("");
 	content << "task_" << taskentry->id << "_surf_list" << endl;
-	mle.contents.push_back(content.str());
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.offsets.push_back(0);
-	mle.size = roundUp(sizeof(union dla_surface_container), 4); 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+	size = roundUp(sizeof(union dla_surface_container), 4); 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 	//alloc mem for lut
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.size = 4096; 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+    content.str();
+	size = 4096; 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 	//alloc mem for null
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.size = 4096; 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
-	
-	return ;
+    content.str();
+	size = 4096; 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 }
 
 void MemoryListParser::allocMemforEmuTask(ILoadable::TaskListEntry* taskentry){
 	nvdla::ILoadable::MemoryListEntry mle;
 	stringstream content;
+    int size;
 	if(!taskentry){
 		printf("%s, %d, taskentry is null!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
 	//alloc mem for struct emu_network_desc
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
 	content.str("");
 	content << "task_" << taskentry->id << "_network_desc" << endl;
-	mle.contents.push_back(content.str());
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.offsets.push_back(0);
-	mle.size = roundUp(sizeof(struct emu_network_desc), 256); 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+	size = roundUp(sizeof(struct emu_network_desc), 256); 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 	//alloc mem for union emu_operation_container
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
 	content.str("");
 	content << "task_" << taskentry->id << "_op_list" << endl;
-	mle.contents.push_back(content.str());
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.offsets.push_back(0);
-	mle.size = roundUp(sizeof(union emu_operation_container), 4); 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+	size = roundUp(sizeof(union emu_operation_container), 4); 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
 	//alloc mem for union emu_operation_buffer_container
-	mle.id = mem_id;
-	mle.alignment = MEM_ALIGNMENT_PAGE;
-	mle.bind_id = 0;
-	mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-	mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-	while(mle.contents.size()){
-	   mle.contents.pop_back();
-	}
 	content.str("");
 	content << "task_" << taskentry->id << "_op_buffer_list" << endl;
-	mle.contents.push_back(content.str());
-	while(mle.offsets.size()){
-	   mle.offsets.pop_back();
-	}
-	mle.offsets.push_back(0);
-	mle.size = roundUp(sizeof(union emu_operation_buffer_container), 4); 
-	mle.tensor_desc_id = 0;
-	mList.push_back(mle);
-	mem_id++;
+	size = roundUp(sizeof(union emu_operation_buffer_container), 4); 
+    MemoryListParser::addTaskMemEntry(content.str(), size);
+	//alloc mem for union emu_operation_buffer_container
 	//alloc mem  NULL
-	for(int i=0; i<3; i++){
-		mle.id = mem_id;
-		mle.alignment = MEM_ALIGNMENT_PAGE;
-		mle.bind_id = 0;
-		mle.domain = nvdla::ILoadable::MemoryDomain_SYSMEM;
-		mle.flags = nvdla::ILoadable::MemoryFlags_ALLOC | nvdla::ILoadable::MemoryFlags_SET;
-		while(mle.contents.size()){
-		   mle.contents.pop_back();
-		}
-		while(mle.offsets.size()){
-		   mle.offsets.pop_back();
-		}
-		mle.size = 4096; 
-		mle.tensor_desc_id = 0;
-		mList.push_back(mle);
-		mem_id++;
+	for(int i=0; i<3; i++)
+    {
+	    content.str("");
+		size = 4096; 
+        MemoryListParser::addTaskMemEntry(content.str(), size);
 	}
-	
-	return ;
 }
 
 
