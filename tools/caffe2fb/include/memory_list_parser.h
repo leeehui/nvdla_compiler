@@ -56,6 +56,7 @@ public:
 	void layerConvlutionParse(Layer* layer, Layer* pre_layer);
 	void layerSdpParse(Layer* layer, Layer* pre_layer);
 	void layerPdpParse(Layer* layer, Layer* pre_layer);
+    void layerCdpParse(Layer* layer, Layer* pre_layer);
 	void layerSoftmaxParse(Layer* layer, Layer* pre_layer);
 	void allocMemforDlaTask(ILoadable::TaskListEntry* taskentry);
 	void allocMemforEmuTask(ILoadable::TaskListEntry* taskentry);

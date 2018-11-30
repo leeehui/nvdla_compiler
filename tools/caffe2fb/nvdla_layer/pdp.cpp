@@ -55,17 +55,17 @@ union dla_layer_param_container NvdlaPDP::get_params(void)
 {
 
     union dla_layer_param_container params;
-    params.pdp_params.global_pooling = pooling_type;
-    params.pdp_params.kernel_w = kernel_w;
-    params.pdp_params.kernel_h = kernel_h;
-    params.pdp_params.stride_w = stride_w;
-    params.pdp_params.stride_h = stride_h;
-    params.pdp_params.pad_left = pad_left;
-    params.pdp_params.pad_right = pad_right;
-    params.pdp_params.pad_top = pad_top;
-    params.pdp_params.pad_bottom = pad_bottom;
-    params.pdp_params.global_pooling = global_pooling;
-    params.pdp_params.pad_mode = pad_mode;
+    params.nv_pdp_params.global_pooling = pooling_type;
+    params.nv_pdp_params.kernel_w = kernel_w;
+    params.nv_pdp_params.kernel_h = kernel_h;
+    params.nv_pdp_params.stride_w = stride_w;
+    params.nv_pdp_params.stride_h = stride_h;
+    params.nv_pdp_params.pad_left = pad_left;
+    params.nv_pdp_params.pad_right = pad_right;
+    params.nv_pdp_params.pad_top = pad_top;
+    params.nv_pdp_params.pad_bottom = pad_bottom;
+    params.nv_pdp_params.global_pooling = global_pooling;
+    params.nv_pdp_params.pad_mode = pad_mode;
     return params;
 }
 

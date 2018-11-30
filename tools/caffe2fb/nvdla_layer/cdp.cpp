@@ -42,10 +42,10 @@ namespace nvdla {
     {
 
         union dla_layer_param_container params;
-        params.cdp_params.region_type = region_type;
-        params.cdp_params.local_size = local_size;
-        params.cdp_params.alpha = alpha;
-        params.cdp_params.beta = beta;
+        params.nv_cdp_params.region_type = region_type;
+        params.nv_cdp_params.local_size = local_size;
+        params.nv_cdp_params.alpha = alpha;
+        params.nv_cdp_params.beta = beta;
         return params;
     }
 

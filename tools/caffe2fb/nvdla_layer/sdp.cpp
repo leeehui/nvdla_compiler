@@ -58,8 +58,8 @@ union dla_layer_param_container NvdlaSDP::get_params(void)
 {
 
     union dla_layer_param_container params;
-    params.sdp_params.slope = slope;
-    params.sdp_params.weight_data = weight_data;
+    params.nv_sdp_params.slope = slope;
+    params.nv_sdp_params.weight_data = weight_data;
     return params;
 }
 

@@ -111,15 +111,17 @@ struct dla_nv_softmax_params
 union dla_layer_param_container {
     struct dla_nv_input_params nv_input_params;
     struct dla_nv_conv_params nv_conv_params;
-    struct dla_pdp_params pdp_params;
-    struct dla_sdp_params sdp_params;
-    struct dla_cdp_params cdp_params;
+    struct dla_pdp_params nv_pdp_params;
+    struct dla_sdp_params nv_sdp_params;
+    struct dla_cdp_params nv_cdp_params;
     struct dla_nv_softmax_params nv_softmax_params;
 };
 
 struct dla_surface_desc {
-	/* Data cube */
+    // Note: in case of SDP HWLs, the weight_data usually means x1_data of struct dla_sdp_surface_desc 
+    //       as currently we have not seen use of x2_data y_data yet
 	struct dla_data_cube weight_data;
+
 	struct dla_data_cube src_data;
 	struct dla_data_cube dst_data;
 };
