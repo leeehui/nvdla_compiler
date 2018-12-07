@@ -23,23 +23,6 @@ NvdlaConv::NvdlaConv()
     stride_h = 1;
     pad_w = 0;
     pad_h = 0;
-//    if(hard_patchs[0].entry_per_slice != 7){
-//        hard_patchs[0].entry_per_slice = 7;
-//        hard_patchs[0].skip_weight_rls = 0;
-//        hard_patchs[0].weight_bank = 1;
-//
-//        hard_patchs[1].entry_per_slice = 6;
-//        hard_patchs[1].skip_weight_rls = 0;
-//        hard_patchs[1].weight_bank = 2;
-//
-//        hard_patchs[2].entry_per_slice = 4;
-//        hard_patchs[2].skip_weight_rls = 0;
-//        hard_patchs[2].weight_bank = 2;
-//
-//        hard_patchs[3].entry_per_slice = 8;
-//        hard_patchs[3].skip_weight_rls = 1;
-//        hard_patchs[3].weight_bank = 1;
-//    }
 }
 
 NvdlaConv::~NvdlaConv()
@@ -69,6 +52,8 @@ void NvdlaConv::fill_params(std::vector<int> params)
     max_src_data_height = *it++;
     is_first_conv_split = *it++;
     is_end_conv_split = *it++;
+    feature_bank_num = *it++;
+    weight_bank_num = *it++;
 
     
 }
@@ -150,24 +135,45 @@ union dla_surface_container NvdlaConv::fill_dla_surface_des(void)
 union dla_operation_container NvdlaConv::fill_dla_op_des(void)
 {
     union dla_operation_container dla_op_desc;
-    //hard_patch_index++;
     memset(&dla_op_desc, 0, sizeof(union dla_operation_container));
     dla_op_desc.conv_op.conv_mode = conv_mode;
-    //dla_op_desc.conv_op.data_reuse = 0;
-    //dla_op_desc.conv_op.weight_reuse = 0;
-    //dla_op_desc.conv_op.skip_data_rls =
-    //dla_op_desc.conv_op.skip_weight_rls = hard_patchs[hard_patch_index - 1].skip_weight_rls;
-    //dla_op_desc.conv_op.entry_per_slice = hard_patchs[hard_patch_index - 1].entry_per_slice;
+    if (conv_split_mode == CONV_SPLIT_WEIGHT)
+    {
+        dla_op_desc.conv_op.data_reuse = 1;
+        dla_op_desc.conv_op.weight_reuse = 0;
+    }
+    else if (conv_split_mode == CONV_SPLIT_FEATURE)
+    {
+        dla_op_desc.conv_op.data_reuse = 0;
+        dla_op_desc.conv_op.weight_reuse = 1;
+    }
+    else
+    {
+        dla_op_desc.conv_op.data_reuse = 0;
+        dla_op_desc.conv_op.weight_reuse = 0;
+    }
+
+    dla_op_desc.conv_op.skip_data_rls = 0;
+    dla_op_desc.conv_op.skip_weight_rls = 0;
+    
+    // Note:
+    dla_op_desc.conv_op.entry_per_slice = round_up(get_input_w() * get_input_c() * get_bpe(), 
+                                                NVDLA_CBUF_ENTRY_SIZE) / NVDLA_CBUF_ENTRY_SIZE;
     dla_op_desc.conv_op.data_format = FORMAT_FEATURE;
     dla_op_desc.conv_op.fetch_grain = 1;
+
+    // Note: currently we do NOT support batch mode
     dla_op_desc.conv_op.batch = 1;
     dla_op_desc.conv_op.weight_format = WEIGHT_FORMAT_UNCOMPRESSED;
-    dla_op_desc.conv_op.data_bank = 1;
-    //dla_op_desc.conv_op.weight_bank = hard_patchs[hard_patch_index - 1].weight_bank;
-    //dla_op_desc.conv_op.batch_stride = 
-    //dla_op_desc.conv_op.post_extension = 
-    //dla_op_desc.conv_op.pixel_override = 
-    dla_op_desc.conv_op.release = surface_desc.src_data.width; // ??
+
+    dla_op_desc.conv_op.data_bank = feature_bank_num;
+    dla_op_desc.conv_op.weight_bank = weight_bank_num;
+
+    dla_op_desc.conv_op.batch_stride = 0;
+    dla_op_desc.conv_op.post_extension = 0;
+    dla_op_desc.conv_op.pixel_override = 0;
+
+    dla_op_desc.conv_op.release = surface_desc.src_data.height; // do Not use with in case of Split-H
     dla_op_desc.conv_op.input_width_csc = surface_desc.src_data.width;
     dla_op_desc.conv_op.input_height_csc = surface_desc.src_data.height;
     dla_op_desc.conv_op.input_channel_csc = surface_desc.src_data.channel;
@@ -177,11 +183,13 @@ union dla_operation_container NvdlaConv::fill_dla_op_des(void)
     dla_op_desc.conv_op.input_width_cmac = surface_desc.dst_data.width;
     dla_op_desc.conv_op.input_height_cmac = surface_desc.dst_data.height;
     dla_op_desc.conv_op.bytes_per_kernel = weight_data_size * get_bpe() / num_output;
-    //dla_op_desc.conv_op.mean_ry = 
-    //dla_op_desc.conv_op.mean_gu = 
-    //dla_op_desc.conv_op.mean_bv = 
-    //dla_op_desc.conv_op.mean_ax = 
-    //dla_op_desc.conv_op.mean_format = 
+
+    dla_op_desc.conv_op.mean_ry = 0;
+    dla_op_desc.conv_op.mean_gu = 0;
+    dla_op_desc.conv_op.mean_bv = 0;
+    dla_op_desc.conv_op.mean_ax = 0;
+    dla_op_desc.conv_op.mean_format = 0;
+
     dla_op_desc.conv_op.conv_stride_x = stride_w;
     dla_op_desc.conv_op.conv_stride_y = stride_h;
     dla_op_desc.conv_op.pad_x_left = pad_w;
@@ -190,11 +198,12 @@ union dla_operation_container NvdlaConv::fill_dla_op_des(void)
     dla_op_desc.conv_op.pad_y_top = pad_h;
     dla_op_desc.conv_op.dilation_x = dilation_w;
     dla_op_desc.conv_op.dilation_y = dilation_h;
-    //dla_op_desc.conv_op.pra_truncate = 
+    dla_op_desc.conv_op.pra_truncate = 0;
     dla_op_desc.conv_op.in_precision = PRECISION_FP16;//hafl_float
     dla_op_desc.conv_op.out_precision = PRECISION_FP16;
-    dla_op_desc.conv_op.out_cvt.scale = 1;//??
-    dla_op_desc.conv_op.out_cvt.enable = 1;//??
+
+    dla_op_desc.conv_op.out_cvt.scale = 1;//see hardware block for detailed information
+    dla_op_desc.conv_op.out_cvt.enable = 1;//enable always on                                     
     return dla_op_desc;
 
 }

@@ -12,6 +12,19 @@ Layer::~Layer()
 {
 }
 
+int Layer::round_up(int num_to_round, int multiple)
+{
+    if (multiple == 0)
+        return num_to_round;
+
+    int remainder = num_to_round % multiple;
+    if (remainder == 0)
+        return num_to_round;
+
+    return num_to_round + multiple - remainder;
+}
+
+
 int Layer::load_param(const ParamDict& /*pd*/)
 {
     return 0;

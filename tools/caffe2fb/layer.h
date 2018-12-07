@@ -77,6 +77,7 @@ public:
 
     // load layer specific weight data from model binary
     // return 0 if success
+    virtual int round_up(int num_to_round, int multiple);
     virtual int load_model(const ModelBin& mb);
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
     virtual void calc_output_params(Layer *bottom_layer);

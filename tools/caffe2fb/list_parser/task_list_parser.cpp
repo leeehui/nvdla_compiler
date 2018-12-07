@@ -212,6 +212,7 @@ void TaskListParser::buildList() {
 	debug_info("%s, %d, mList.size = %d\n", __FUNCTION__, __LINE__, mList.size());
 }
 
+// Note: task address list will be added during memory list parsing phase
 void TaskListParser::fillAddressList()
 { 
 	//TODO

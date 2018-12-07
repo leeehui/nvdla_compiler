@@ -105,7 +105,7 @@ void *SymbolListParser::fill_bias_weight_data(Layer * layer){
     struct dla_surface_desc surface_desc = layer->surface_desc;
     NvU64 mem_size = surface_desc.weight_data.size;
     union dla_layer_param_container params = layer->get_params();
-    float * weight_data = (float *)params.sdp_params.weight_data;
+    float * weight_data = (float *)params.nv_sdp_params.weight_data;
     NvU8 *data = (NvU8 *)malloc(mem_size);
     uint16_t bpe = (uint16_t)layer->get_bpe();
     uint16_t width = surface_desc.weight_data.width;
@@ -524,6 +524,8 @@ void SymbolListParser::fill_nvdla_taskinfo_blobs(ILoadable::TaskListEntry task_e
     task_net_desc_blob.name = mem_entry.contents[0];
     debug_info("enter %s line=%d\n",__FUNCTION__,__LINE__);
     task_net_desc_blob.size = mem_entry.size;
+
+    // fill the dla_network_desc struct that will be used in KMD 
     struct dla_network_desc net_desc;
     memset(&net_desc, 0, sizeof(struct dla_network_desc));
     NvU8 * net_desc_data = task_net_desc_blob.data;

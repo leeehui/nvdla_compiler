@@ -646,31 +646,31 @@ void MemoryListParser::allocMemforDlaTask(ILoadable::TaskListEntry* taskentry){
 		printf("%s, %d, taskentry is null!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
-	//alloc mem for struct dla_network_desc
+	// alloc mem for struct dla_network_desc
 	content.str("");
 	content << "task_" << taskentry->id << "_network_desc" << endl;
 	size = roundUp(sizeof(struct dla_network_desc), 4); 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for struct dla_common_op_desc
+	// alloc mem for struct dla_common_op_desc
 	content.str("");
 	content << "task_" << taskentry->id << "_dep_graph" << endl;
 	size = roundUp(sizeof(struct dla_common_op_desc), 4); 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for union dla_operation_container
+	// alloc mem for union dla_operation_container
 	content.str("");
 	content << "task_" << taskentry->id << "_op_list" << endl;
 	size = roundUp(sizeof(union dla_operation_container), 4); 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for union dla_surface_container
+	// alloc mem for union dla_surface_container
 	content.str("");
 	content << "task_" << taskentry->id << "_surf_list" << endl;
 	size = roundUp(sizeof(union dla_surface_container), 4); 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for lut
+	// alloc mem for lut
     content.str();
 	size = 4096; 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for null
+	// alloc mem for null, as the STRUCTS_PER_TASK is 6, currently do NOT know why 6
     content.str();
 	size = 4096; 
     MemoryListParser::addTaskMemEntry(content.str(), size);
@@ -684,23 +684,22 @@ void MemoryListParser::allocMemforEmuTask(ILoadable::TaskListEntry* taskentry){
 		printf("%s, %d, taskentry is null!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
-	//alloc mem for struct emu_network_desc
+	// alloc mem for struct emu_network_desc
 	content.str("");
 	content << "task_" << taskentry->id << "_network_desc" << endl;
 	size = roundUp(sizeof(struct emu_network_desc), 256); 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for union emu_operation_container
+	// alloc mem for union emu_operation_container
 	content.str("");
 	content << "task_" << taskentry->id << "_op_list" << endl;
 	size = roundUp(sizeof(union emu_operation_container), 4); 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for union emu_operation_buffer_container
+	// alloc mem for union emu_operation_buffer_container
 	content.str("");
 	content << "task_" << taskentry->id << "_op_buffer_list" << endl;
 	size = roundUp(sizeof(union emu_operation_buffer_container), 4); 
     MemoryListParser::addTaskMemEntry(content.str(), size);
-	//alloc mem for union emu_operation_buffer_container
-	//alloc mem  NULL
+	// alloc mem for null, as the STRUCTS_PER_TASK is 6, currently do NOT know why 6
 	for(int i=0; i<3; i++)
     {
 	    content.str("");
@@ -733,13 +732,16 @@ void  MemoryListParser::buildList()
     NvU32 index;
     debug_info("%s, %d\n", __FUNCTION__, __LINE__);
 	//alloc mem for layers
-	for(index = 0 ; index < layers.size(); index++){
+	for(index = 0 ; index < layers.size(); index++)
+    {
 		layer = layers[index];
-		if(index > 0){
+		if(index > 0)
+        {
 			pre_layer = layers[index-1];
 		}
         debug_info("%s, %d, index= %d, layer->nvdla_type = %d\n", __FUNCTION__, __LINE__, index, layer->nvdla_type);
-		switch(layer->nvdla_type){
+		switch(layer->nvdla_type)
+        {
 			case NvInput:
 				layerInputParse(layer);
 				break;
@@ -769,12 +771,14 @@ void  MemoryListParser::buildList()
 		debugLayer(layer);
 	} 
 	//alloc mem for task
-	if(mTaskListParser == NULL){
+	if(mTaskListParser == NULL)
+    {
 		printf("%s, %d, mTaskListParser is NULL, error!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
 	
-	for(index=0; index< (*TaskList).size(); index++){
+	for(index=0; index< (*TaskList).size(); index++)
+    {
 		tle = (*TaskList)[index];
 		taskTypeParse(&tle);
 	}
@@ -782,13 +786,16 @@ void  MemoryListParser::buildList()
 	return ;
 }
 
-void MemoryListParser::getNetWorkDescMemId(NvU16 task_id, NvU16* mem_id){
-	if(!(mList.size())){
-		printf("%s, %d, MemoryListEntry is NULL!\n", __FUNCTION__, __LINE__);
+void MemoryListParser::getNetWorkDescMemId(NvU16 task_id, NvU16* mem_id)
+{
+	if(!(mList.size()))
+    {
+		debug_info("%s, %d, MemoryListEntry is NULL!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
-	if(!mem_id){
-		printf("%s, %d, parameter is NULL!\n", __FUNCTION__, __LINE__);
+	if(!mem_id)
+    {
+		debug_info("%s, %d, parameter is NULL!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
 	
@@ -797,17 +804,18 @@ void MemoryListParser::getNetWorkDescMemId(NvU16 task_id, NvU16* mem_id){
 	content.str("");
 	content << "task_" << task_id << "_network_desc" <<endl;
 	
-	for(NvU32 index=0; index<mList.size(); index++){
+	for(NvU32 index=0; index<mList.size(); index++)
+    {
 		mle = mList[index];
 		//find the task network desc
-		for(NvU32 i=0; i<mle.contents.size(); i++){
+		for(NvU32 i=0; i<mle.contents.size(); i++)
+        {
 			if(mle.contents[i] == content.str()){
 				debug_info("%s, %d, mle.id = %d, content = %s\n", __FUNCTION__, __LINE__, mle.id, mle.contents[i].c_str());
 				*mem_id = mle.id;
 				return ;
 			}
 		}
-		
 	}
 	return ;
 }
@@ -815,11 +823,11 @@ void MemoryListParser::getNetWorkDescMemId(NvU16 task_id, NvU16* mem_id){
 void MemoryListParser::getMemId(NvU16 task_id, vector<NvU16>* mem_id_list){
 	
     if(!mem_id_list){
-		printf("%s, %d, parameter is NULL!\n", __FUNCTION__, __LINE__);
+		debug_info("%s, %d, parameter is NULL!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
 	if(!(mList.size())){
-		printf("%s, %d, MemoryListEntry is NULL!\n", __FUNCTION__, __LINE__);
+		debug_info("%s, %d, MemoryListEntry is NULL!\n", __FUNCTION__, __LINE__);
 		return ;
 	}
 	NvU16 mem_id = 0;
@@ -827,23 +835,21 @@ void MemoryListParser::getMemId(NvU16 task_id, vector<NvU16>* mem_id_list){
 	ILoadable::MemoryListEntry mle;
 	NvU32 index;
 
-	while((*mem_id_list).size()){
-		(*mem_id_list).pop_back();
-	}
-	
 	//task  network desc id
 	getNetWorkDescMemId(task_id, &mem_id);
 	getNetWorkDescMemId(0, &first_task_mem_id);
+
 	//push the mem id in vector
 	(*mem_id_list).push_back(mem_id);
 
 	debug_info("%s, %d, mem_id = %d\n", __FUNCTION__, __LINE__, mem_id);
 
-	//mem id 0 not need to push
+	//mem id 0 not need to push, so start with 1
 	for(index=1; index < first_task_mem_id; index++){
 		mle = mList[index];
 		(*mem_id_list).push_back(mle.id);
 	}
+    // STRUCTS_PER_TASK is 6
 	for(index=mem_id; index < mem_id + 6; index++){
 		mle = mList[index];
 		(*mem_id_list).push_back(mle.id);
@@ -894,9 +900,7 @@ void MemoryListParser::fillTaskAddrList(void){
 	}
 	for(task_index=0; task_index<(*task_list).size(); task_index++){
 		tle = &((*task_list)[task_index]);
-		while(tle->address_list.size()){
-			tle->address_list.pop_back();
-		}
+        tle->address_list.clear();
 		getMemId(tle->id, &(tle->address_list));
 
 		//dla task need to modify mem size
@@ -941,7 +945,6 @@ void MemoryListParser::fillTaskAddrList(void){
 						mle->size = mle->size * (tle->postactions[i] - tle->preactions[i] + 1);
 					}
 				}
-				
 			}
 		}
 	}

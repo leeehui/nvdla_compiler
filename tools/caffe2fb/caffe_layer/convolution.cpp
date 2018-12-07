@@ -18,18 +18,6 @@ Convolution::~Convolution()
 {
 }
 
-int Convolution::round_up(int num_to_round, int multiple)
-{
-    if (multiple == 0)
-        return num_to_round;
-
-    int remainder = num_to_round % multiple;
-    if (remainder == 0)
-        return num_to_round;
-
-    return num_to_round + multiple - remainder;
-}
-
 void Convolution::calc_output_params(Layer *bottom_layer) 
 {
     int S = (kernel_w - 1) / dilation_w + 1;    
@@ -109,6 +97,7 @@ int Convolution::load_model(const ModelBin& mb)
     static int index = 0;
     debug_info("Convolution index=%d mode data......\n",index++);
     debug_info("weigth_data top 10.....\n");
+
     float * data = (float *)weight_data.data;
     for(int i = 0; i < 10; i++)
     {
@@ -165,6 +154,8 @@ int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers,
                                     int line_num_per_split, 
                                     int min_src_data_height, 
                                     int max_src_data_height, 
+                                    int feature_bank_num, 
+                                    int weight_bank_num, 
                                     bool is_first_conv_split, bool is_end_conv_split)
 {
     Layer * layer = create_layer("NvdlaConv");
@@ -187,6 +178,8 @@ int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers,
     paras.push_back(max_src_data_height);
     paras.push_back(is_first_conv_split);
     paras.push_back(is_end_conv_split);
+    paras.push_back(feature_bank_num);
+    paras.push_back(weight_bank_num);
 
     if(!layer)
     {
@@ -302,7 +295,7 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
     {
         case CONV_SPLIT_NONE: 
         {
-            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_NONE, 0, 0, 0, false, false);
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_NONE, 0, 0, 0, feature_bank_num, weight_bank_num, false, false);
             break;
         }
         case CONV_SPLIT_FEATURE: 
@@ -346,25 +339,50 @@ int Convolution::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
 
             // add nvdla layers
             add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split_first, 
-                                min_src_data_height, max_src_data_height, true, false);
+                                min_src_data_height, max_src_data_height, 
+                                left_bank_num, weight_bank_num, true, false);
             for (int i = 0; i < conv_split_num - 2; i++)
             {
                 add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split, 
-                                    min_src_data_height, max_src_data_height, false, false);
+                                    min_src_data_height, max_src_data_height, 
+                                    left_bank_num, weight_bank_num, false, false);
             }
 
             int line_num_per_split_end = (get_input_w() - line_num_per_split_first - additional_line) % 
                                         (line_num_per_split - additional_line);
             add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_FEATURE, line_num_per_split_end , 
-                                min_src_data_height, max_src_data_height, false, true);
+                                min_src_data_height, max_src_data_height, 
+                                left_bank_num, weight_bank_num, false, true);
 
             break;
         }
         case CONV_SPLIT_WEIGHT: 
         {
             // priority of determining weight data bank number: 
-            // NVDLA_MAC_CELL_NUM * 2 >> NVDLA_MAC_CELL_NUM >> use all left banks  
-            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_WEIGHT, 0, 0, 0, false, false);
+            // the capacity of the used weight banks should not be less than
+            // the size of (NVDLA_MAC_CELL_NUM * 2) kernel size(1st Priority) or 
+            // the size of (NVDLA_MAC_CELL_NUM * 1) kernel size(2nd Priority) or 
+            // use all left banks(3rd Priority)  
+            
+            int left_bank_num = NVDLA_CBUF_BANK_NUM - feature_bank_num;
+            int left_bank_capacity = left_bank_num * NVDLA_CBUF_BANK_SIZE;
+            int kernel_size = kernel_h * kernel_w * get_output_c() * get_bpe();  
+
+            int mac_cell_num = NVDLA_MAC_CELL_NUM * 2;
+            if ((mac_cell_num * kernel_size) <= left_bank_capacity)
+            {
+                weight_bank_num = mac_cell_num;
+            }
+            else if ((NVDLA_MAC_CELL_NUM * kernel_size) <= left_bank_capacity)
+            {
+                weight_bank_num = NVDLA_MAC_CELL_NUM;
+            }
+            else
+            {
+                weight_bank_num = left_bank_num;
+            }
+
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_WEIGHT, 0, 0, 0, feature_bank_num, weight_bank_num, false, false);
             
             break;
         }
