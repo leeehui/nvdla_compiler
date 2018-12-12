@@ -173,7 +173,7 @@ union dla_operation_container NvdlaConv::fill_dla_op_des(void)
     dla_op_desc.conv_op.post_extension = 0;
     dla_op_desc.conv_op.pixel_override = 0;
 
-    dla_op_desc.conv_op.release = surface_desc.src_data.height; // do Not use with in case of Split-H
+    dla_op_desc.conv_op.release = surface_desc.src_data.height; // do Not use "width" in case of Split-H mode
     dla_op_desc.conv_op.input_width_csc = surface_desc.src_data.width;
     dla_op_desc.conv_op.input_height_csc = surface_desc.src_data.height;
     dla_op_desc.conv_op.input_channel_csc = surface_desc.src_data.channel;

@@ -24,6 +24,7 @@ DEFINE_LAYER_CREATOR(InnerProduct)
 
 InnerProduct::InnerProduct()
 {
+    group = 0;
     set_bpe(2);
 }
 
@@ -104,13 +105,20 @@ int InnerProduct::load_model(const ModelBin& mb)
     return 0;
 }
 
-int InnerProduct::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
+int InnerProduct::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers, 
+                                    int conv_split_mode, 
+                                    int feature_bank_num, 
+                                    int weight_bank_num)
 {
     Layer * layer = create_layer("NvdlaConv");
     std::vector <int> paras;
+
+    // full connect layer parameters 
     paras.push_back(num_output);
-    paras.push_back(-1);
-    paras.push_back(-1);
+    // weight size is same as input feature size
+    paras.push_back(get_input_w());
+    paras.push_back(get_input_h());
+
     paras.push_back(1);
     paras.push_back(1);
     paras.push_back(1);
@@ -119,30 +127,181 @@ int InnerProduct::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
     paras.push_back(0);
     paras.push_back(bias_term);
     paras.push_back(weight_data_size);
+    paras.push_back(group);
+   
+    paras.push_back(conv_split_mode);
+    paras.push_back(0);
+    paras.push_back(0);
+    paras.push_back(0);
+    paras.push_back(false);
+    paras.push_back(false);
+    paras.push_back(feature_bank_num);
+    paras.push_back(weight_bank_num);
+
     if(!layer)
     {
         printf("create layer NvdlaConv failed\n");
         return -1;
     }
+
+    // Note: the following params are that of before Convolution Split-H
+    // this is just used for calculating split convolution params
+    layer->set_input_w(get_input_w());
+    layer->set_input_h(get_input_h());
+    layer->set_input_c(get_input_c());
+    layer->set_output_w(get_output_w());
+    layer->set_output_h(get_output_h());
+    layer->set_output_c(get_output_c());
+
     layer->fill_params(paras);
     layer->set_weight_data(weight_data);
     
     nvdla_layers->push_back(layer);
-
     layer = create_layer("NvdlaSDP");
     if(!layer)
     {
-        printf("create layer NvdlaSDP failed\n");
+        debug_info("create layer NvdlaSDP failed\n");
         return -1;
     }
-    if(bias_term == 1)
+    if (bias_term == 1)
     {
         layer->set_action(SDP_ACTION_ADD_BIAS);
         layer->set_weight_data(bias_data);
+    }
+    else
+    {
+        // this means SDP will be used as WDMA for writing convolution data back to mem
+        // see Res-18 for detailed infomation
+        layer->set_action(SDP_ACTION_NONE);
     }
     nvdla_layers->push_back(layer);
     return 0;
 
 }
 
+int InnerProduct::convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers)
+{   
+    //here we should decide the Working mode of conv
+    //1. Full input & Full weight
+    //2. Full input & Partial weight
+    //3. Split
+    //3.1. Partial input & Full weight
+    //3.2. Partial input & Partial weight
+    
+    // initialize to no split, all data, all weight 
+    conv_split_mode  split_mode = CONV_SPLIT_NONE;
+
+    //int line_stride_size;
+    int weight_bank_num;
+    int feature_bank_num;
+    int feature_data_size;
+
+    // calculate src size
+    //line_stride_size = get_input_w() * NVDLA_FEATURE_DATA_ALIGN;
+
+    // TODO: Image mode do NOT need the following if statement
+    if (true == get_is_first_conv())
+    {
+        debug_info("first Convolution\n");
+        feature_data_size = get_input_w() * get_input_h() * NVDLA_FEATURE_DATA_ALIGN * get_bpe();
+        // do not need any more
+        set_is_first_conv(false);                                 
+    }
+    else
+    {
+        feature_data_size = get_input_w() * get_input_h() * get_input_c() * get_bpe();
+    }
+    weight_data_size = weight_data_size * get_bpe();
+    weight_data_size = round_up(weight_data_size, NVDLA_KERNEL_ALIGN);
+
+    weight_bank_num = round_up(weight_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
+    feature_bank_num = round_up(feature_data_size, NVDLA_CBUF_BANK_SIZE) / NVDLA_CBUF_BANK_SIZE;
+
+
+    debug_info("Convolution \n");
+    debug_info("feature_data_size: %d\n", feature_data_size);
+    debug_info("weight_data_size: %d\n", weight_data_size);
+    debug_info("feature_bank_num: %d\n", feature_bank_num);
+    debug_info("weight_bank_num: %d\n", weight_bank_num);
+    
+    // need split
+    if ((weight_bank_num + feature_bank_num) > NVDLA_CBUF_BANK_NUM)
+    {
+
+        if ((weight_bank_num < NVDLA_CBUF_BANK_NUM) || (feature_bank_num < NVDLA_CBUF_BANK_NUM))
+        {
+            // all weight, partial data
+            if (weight_bank_num < NVDLA_CBUF_BANK_NUM)
+            {
+                debug_info("Unexpected split mode: CONV_SPLIT_FEATURE for InnerProduct\n");
+            }
+            // all data, partial weight
+            else
+            {
+                split_mode = CONV_SPLIT_WEIGHT;
+            }
+        }
+        // partial data, partial weight
+        else
+        {
+            debug_info("Unexpected split mode: CONV_SPLIT_ALL for InnerProduct\n");
+        }
+    }
+
+    debug_info("split_mode: %d\n", split_mode);
+
+    // create nvdla layers according to split mode
+    switch (split_mode)
+    {
+        case CONV_SPLIT_NONE: 
+        {
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_NONE, feature_bank_num, weight_bank_num);
+            break;
+        }
+        case CONV_SPLIT_FEATURE: 
+        {
+            debug_info("Currently Not support split_feature mode\n");
+            break;
+        }
+        case CONV_SPLIT_WEIGHT: 
+        {
+            // priority of determining weight data bank number: 
+            // the capacity of the used weight banks should not be less than
+            // the size of (NVDLA_MAC_CELL_NUM * 2) kernel size(1st Priority) or 
+            // the size of (NVDLA_MAC_CELL_NUM * 1) kernel size(2nd Priority) or 
+            // use all left banks(3rd Priority)  
+            
+            int left_bank_num = NVDLA_CBUF_BANK_NUM - feature_bank_num;
+            int left_bank_capacity = left_bank_num * NVDLA_CBUF_BANK_SIZE;
+            //int kernel_size = kernel_h * kernel_w * get_output_c() * get_bpe();  
+            int kernel_size = get_input_h() * get_input_w() * get_output_c() * get_bpe();  
+
+            int mac_cell_num = NVDLA_MAC_CELL_NUM * 2;
+            if ((mac_cell_num * kernel_size) <= left_bank_capacity)
+            {
+                weight_bank_num = mac_cell_num;
+            }
+            else if ((NVDLA_MAC_CELL_NUM * kernel_size) <= left_bank_capacity)
+            {
+                weight_bank_num = NVDLA_MAC_CELL_NUM;
+            }
+            else
+            {
+                weight_bank_num = left_bank_num;
+            }                                                                                      
+
+            add_nvdla_conv_layer(nvdla_layers, CONV_SPLIT_WEIGHT, feature_bank_num, weight_bank_num);
+            
+            break;
+        }
+        case CONV_SPLIT_ALL: 
+        {
+            debug_info("Currently Not support split_all mode\n");
+            break;
+        }
+        default: break;
+    }
+    
+    return 0;
+}        
 }

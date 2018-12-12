@@ -31,12 +31,17 @@ public:
     virtual int convert_to_nvdla_layer(std::vector<Layer *> *nvdla_layers);
     virtual void calc_output_params(Layer *bottom_layer);
 //    virtual int forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) const;
+    virtual int add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers, 
+                                    int conv_split_mode, 
+                                    int feature_bank_num, 
+                                    int weight_bank_num);
 
 public:
     // param
     int num_output;
     int bias_term;
 
+    int group;
     int weight_data_size;
 
     int int8_scale_term;

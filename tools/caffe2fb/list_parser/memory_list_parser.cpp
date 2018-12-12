@@ -246,7 +246,7 @@ void MemoryListParser::setConvDescs(Layer *layer,
     layer->surface_desc.src_data.channel = layer->get_input_c();
 
     layer->surface_desc.src_data.line_stride = layer->get_input_w() * NVDLA_FEATURE_DATA_ALIGN;
-    layer->surface_desc.src_data.size = layer->surface_desc.src_data.line_stride * layer_input_par.nv_conv_params.line_num_per_split;
+    layer->surface_desc.src_data.size = layer->surface_desc.src_data.line_stride * layer_input_par.nv_conv_params.max_src_data_height;
     layer->surface_desc.src_data.surf_stride = layer->surface_desc.src_data.size;
     layer->surface_desc.src_data.plane_stride = 0;
 
@@ -1093,16 +1093,6 @@ void MemoryListParser::debugLayer(Layer * layer){
 			debug_info("surf_stride = %d\n", layer->surface_desc.src_data.surf_stride);
 			debug_info("size = %d\n", layer->surface_desc.src_data.size);
 			debug_info("type = %d\n", layer->surface_desc.src_data.type);
-		    debug_info("*********weight***************\n");
-			debug_info("address = %d\n", layer->surface_desc.weight_data.address);
-			debug_info("channel = %d\n", layer->surface_desc.weight_data.channel);
-			debug_info("height = %d\n", layer->surface_desc.weight_data.height);
-			debug_info("width = %d\n", layer->surface_desc.weight_data.width);
-			debug_info("line_stride = %d\n", layer->surface_desc.weight_data.line_stride);
-			debug_info("plane_stride = %d\n", layer->surface_desc.weight_data.plane_stride);
-			debug_info("surf_stride = %d\n", layer->surface_desc.weight_data.surf_stride);
-			debug_info("size = %d\n", layer->surface_desc.weight_data.size);
-			debug_info("type = %d\n", layer->surface_desc.weight_data.type);
 		    debug_info("*********dst******************\n");
 			debug_info("address = %d\n", layer->surface_desc.dst_data.address);
 			debug_info("channel = %d\n", layer->surface_desc.dst_data.channel);

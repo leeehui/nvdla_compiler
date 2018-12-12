@@ -11,6 +11,7 @@ DEFINE_LAYER_CREATOR(Convolution)
 
 Convolution::Convolution()
 {
+    group = 0;
     set_bpe(2);
 }
 
@@ -171,6 +172,7 @@ int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers,
     paras.push_back(pad_h);
     paras.push_back(bias_term);
     paras.push_back(weight_data_size);
+    paras.push_back(group);
    
     paras.push_back(conv_split_mode);
     paras.push_back(line_num_per_split);
@@ -213,7 +215,9 @@ int Convolution::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layers,
     }
     else
     {
-        debug_info("error sdp has no bias data after conv");
+        // this means SDP will be used as WDMA for writing convolution data back to mem
+        // see Res-18 for detailed infomation
+        layer->set_action(SDP_ACTION_NONE);
     }
     nvdla_layers->push_back(layer);
 

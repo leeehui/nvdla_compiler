@@ -375,8 +375,8 @@ void SymbolListParser::fill_emu_taskinfo_blobs(ILoadable::TaskListEntry task_ent
    mList.push_back(task_op_buf_blob);
    return ;
 }
-int32_t SymbolListParser::find_first_layer_index(int32_t first_layer, uint8_t type, int32_t last_layer){
-
+int32_t SymbolListParser::find_first_layer_index(int32_t first_layer, uint8_t type, int32_t last_layer)
+{
     std::vector<Layer*> layers = mNetParserPtr->getLayers();
     Layer* layer;
     for(int i = first_layer; i <= last_layer; i++){
@@ -386,7 +386,6 @@ int32_t SymbolListParser::find_first_layer_index(int32_t first_layer, uint8_t ty
     }
 
     return -1;
-
 }
 
 int32_t SymbolListParser::find_next_layer_index(int32_t cur_layer, layer_type type, int32_t last_layer){
@@ -452,7 +451,7 @@ void SymbolListParser::fill_dla_dep_graph_blob(ILoadable::TaskListEntry task_ent
         set_default_dep_graph(dep_graph_cur);
     }
     for(int32_t cur_id = first_layer; cur_id <= last_layer; cur_id++){
-        dep_graph_index = cur_id - first_layer;
+        dep_graph_index = cur_id - first_layer;// relative index
         layer_cur = layers[cur_id];
         dep_graph_cur = (struct dla_common_op_desc *)(dep_graph_data + dep_graph_index * sizeof(dla_common_op_desc));
         debug_info("cur_id=%d,layer_cur->nvdla_type=%d,\n",cur_id - first_layer,layer_cur->nvdla_type);
@@ -512,7 +511,7 @@ void SymbolListParser::fill_nvdla_taskinfo_blobs(ILoadable::TaskListEntry task_e
     Layer * layer;
     NvU16 first_layer_index = task_entry.preactions[0];    
     NvU16 last_layer_index = task_entry.postactions[0];   
-    NvU16 task_net_desc_address_index = 0;
+    NvU16 task_net_desc_address_index = 0;// fixed index known by all parties such as UMD, KMD...
     NvU16 task_dep_graph_address_index = task_entry.address_list.size() - STRUCTS_PER_TASK + 1;
     NvU16 task_op_list_address_index = task_entry.address_list.size() - STRUCTS_PER_TASK + 2;
     NvU16 task_surf_desc_address_index = task_entry.address_list.size() - STRUCTS_PER_TASK + 3;
@@ -538,8 +537,13 @@ void SymbolListParser::fill_nvdla_taskinfo_blobs(ILoadable::TaskListEntry task_e
     net_desc.stat_list_index = -1;
     net_desc.num_rois = 1;
     net_desc.num_operations = task_entry.postactions[0] - task_entry.preactions[0] + 1;
+
+    // how to set this flag?
     net_desc.num_luts = 0;
+
     net_desc.num_addresses = task_entry.address_list.size();
+
+    // find the first index of each DLA HW module
     for(int i = 0; i < DLA_OP_NUM; i++){
         index = find_first_layer_index(first_layer_index, i, last_layer_index);
         debug_info("index =%d\n",index);

@@ -46,6 +46,7 @@ public:
     int pad_h;
     int bias_term;
     int weight_data_size;
+    int group;
     int int8_scale_term;
 
     // initialized after loading params

@@ -202,7 +202,9 @@ int ConvolutionDepthWise::add_nvdla_conv_layer(std::vector<Layer *> *nvdla_layer
     }
     else
     {
-        printf("error sdp has no bias data after conv");
+        // this means SDP will be used as WDMA for writing convolution data back to mem
+        // see Res-18 for detailed infomation
+        layer->set_action(SDP_ACTION_NONE);
     }
     nvdla_layers->push_back(layer);
 
